@@ -28,16 +28,18 @@ function initEventListeners() {
       panelBottom.classList.add('hidden');
     }
 
-    // Immediately resize charts and update data without range jumping
-    resizeCharts();
     renderChartData();
 
-    if (isDualLayout && chartTop && chartBottom) {
-      const range = chartTop.timeScale().getVisibleLogicalRange();
-      if (range) {
-        chartBottom.timeScale().setVisibleLogicalRange(range);
+    // Force chart resize & sync range immediately
+    setTimeout(() => {
+      resizeCharts();
+      if (isDualLayout && chartTop) {
+        const range = chartTop.timeScale().getVisibleLogicalRange();
+        if (range) {
+          chartBottom.timeScale().setVisibleLogicalRange(range);
+        }
       }
-    }
+    }, 50);
   });
 
   // Level Checkbox Event Listeners
@@ -68,28 +70,18 @@ function initEventListeners() {
     if (chartBottom && isDualLayout) chartBottom.timeScale().fitContent();
   });
 
-  toggleFrankfurtInput.addEventListener('change', (e) => {
-    showFrankfurt = e.target.checked;
+  toggleADEInput.addEventListener('change', (e) => {
+    showADE = e.target.checked;
     updateAllSessionCanvases();
   });
 
   toggleLondonInput.addEventListener('change', (e) => {
-    showLondon = e.target.checked;
+    showLondonGroup = e.target.checked;
     updateAllSessionCanvases();
   });
 
-  toggleNQInput.addEventListener('change', (e) => {
-    showNQ = e.target.checked;
-    updateAllSessionCanvases();
-  });
-
-  togglePreMarketInput.addEventListener('change', (e) => {
-    showPreMarket = e.target.checked;
-    updateAllSessionCanvases();
-  });
-
-  toggleNewYorkInput.addEventListener('change', (e) => {
-    showNewYork = e.target.checked;
+  toggleNYInput.addEventListener('change', (e) => {
+    showNYGroup = e.target.checked;
     updateAllSessionCanvases();
   });
 

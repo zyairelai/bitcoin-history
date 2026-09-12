@@ -27,56 +27,77 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
   // 1. Draw Colored Session Shading Boxes with High/Low Bounds & Label
   const sessionBoxConfigs = [];
 
-  if (showFrankfurt) {
+  // ADE Macro Boxing: Asia (08:00 - 14:00), London (15:00 - 19:00), NewYork (20:00 - 23:45)
+  if (showADE) {
     sessionBoxConfigs.push({
-      title: 'Frankfurt',
-      startOffsetSec: (12 + ukShift) * 3600,              // 12:00 (Summer) or 13:00 (Winter) UTC+8
-      endOffsetSec: (14 + ukShift) * 3600 + 1800,         // 14:30 (Summer) or 15:30 (Winter) UTC+8
-      fillColor: 'rgba(255, 179, 0, 0.15)',   // Soft Amber / Gold Shading
-      borderColor: 'rgba(255, 179, 0, 0.4)',
-      textColor: '#ffb300',
+      title: 'Asia',
+      startOffsetSec: 8 * 3600,                       // 08:00 UTC+8
+      endOffsetSec: (14 + ukShift) * 3600,             // 14:00 (Summer) or 15:00 (Winter) UTC+8
+      fillColor: 'rgba(239, 83, 80, 0.15)',            // Red Shading
+      borderColor: 'rgba(239, 83, 80, 0.4)',
+      textColor: '#ef5350',
     });
-  }
-
-  if (showLondon) {
     sessionBoxConfigs.push({
       title: 'London',
-      startOffsetSec: (15 + ukShift) * 3600,              // 15:00 (Summer) or 16:00 (Winter) UTC+8
-      endOffsetSec: (17 + ukShift) * 3600,               // 17:00 (Summer) or 18:00 (Winter) UTC+8
-      fillColor: 'rgba(76, 175, 80, 0.15)',   // Soft Emerald Green Shading
+      startOffsetSec: (15 + ukShift) * 3600,           // 15:00 (Summer) or 16:00 (Winter) UTC+8
+      endOffsetSec: (19 + ukShift) * 3600,             // 19:00 (Summer) or 20:00 (Winter) UTC+8
+      fillColor: 'rgba(76, 175, 80, 0.15)',            // Green Shading
       borderColor: 'rgba(76, 175, 80, 0.4)',
       textColor: '#4caf50',
     });
+    sessionBoxConfigs.push({
+      title: 'NewYork',
+      startOffsetSec: (20 + usShift) * 3600,           // 20:00 (Summer) or 21:00 (Winter) UTC+8
+      endOffsetSec: (23 + usShift) * 3600 + 2700,      // 23:45 (Summer) or 00:45 (Winter) UTC+8
+      fillColor: 'rgba(255, 235, 59, 0.15)',           // Yellow Shading
+      borderColor: 'rgba(255, 235, 59, 0.4)',
+      textColor: '#ffeb3b',
+    });
   }
 
-  if (showNQ) {
+  // London Sub-Sessions Group (Frankfurt, London, NQ)
+  if (showLondonGroup) {
+    sessionBoxConfigs.push({
+      title: 'Frankfurt',
+      startOffsetSec: (12 + ukShift) * 3600,              // 12:00 UTC+8
+      endOffsetSec: (14 + ukShift) * 3600 + 1800,         // 14:30 UTC+8
+      fillColor: 'rgba(255, 179, 0, 0.15)',   // Amber Gold
+      borderColor: 'rgba(255, 179, 0, 0.4)',
+      textColor: '#ffb300',
+    });
+    sessionBoxConfigs.push({
+      title: 'London',
+      startOffsetSec: (15 + ukShift) * 3600,              // 15:00 UTC+8
+      endOffsetSec: (17 + ukShift) * 3600,               // 17:00 UTC+8
+      fillColor: 'rgba(76, 175, 80, 0.15)',   // Emerald Green
+      borderColor: 'rgba(76, 175, 80, 0.4)',
+      textColor: '#4caf50',
+    });
     sessionBoxConfigs.push({
       title: 'NQ',
-      startOffsetSec: (17 + usShift) * 3600 + 1800,        // 17:30 (Summer) or 18:30 (Winter) UTC+8
-      endOffsetSec: (19 + usShift) * 3600,               // 19:00 (Summer) or 20:00 (Winter) UTC+8
-      fillColor: 'rgba(239, 83, 80, 0.15)',   // Soft Red / Coral Shading
+      startOffsetSec: (17 + usShift) * 3600 + 1800,        // 17:30 UTC+8
+      endOffsetSec: (19 + usShift) * 3600,               // 19:00 UTC+8
+      fillColor: 'rgba(239, 83, 80, 0.15)',   // Red / Coral
       borderColor: 'rgba(239, 83, 80, 0.4)',
       textColor: '#ef5350',
     });
   }
 
-  if (showPreMarket) {
+  // NY Sub-Sessions Group (Pre Market, New York)
+  if (showNYGroup) {
     sessionBoxConfigs.push({
       title: 'Pre Market',
-      startOffsetSec: (20 + usShift) * 3600 + 1800,        // 20:30 (Summer) or 21:30 (Winter) UTC+8
-      endOffsetSec: (21 + usShift) * 3600,               // 21:00 (Summer) or 22:00 (Winter) UTC+8
-      fillColor: 'rgba(41, 98, 255, 0.15)',   // Soft Royal Blue Shading
+      startOffsetSec: (20 + usShift) * 3600 + 1800,        // 20:30 UTC+8
+      endOffsetSec: (21 + usShift) * 3600,               // 21:00 UTC+8
+      fillColor: 'rgba(41, 98, 255, 0.15)',   // Royal Blue
       borderColor: 'rgba(41, 98, 255, 0.4)',
       textColor: '#2962ff',
     });
-  }
-
-  if (showNewYork) {
     sessionBoxConfigs.push({
       title: 'New York',
-      startOffsetSec: (21 + usShift) * 3600 + 1800,        // 21:30 (Summer) or 22:30 (Winter) UTC+8
-      endOffsetSec: (23 + usShift) * 3600 + 1800,        // 23:30 (Summer) or 00:30 (Winter) UTC+8
-      fillColor: 'rgba(156, 39, 176, 0.15)',  // Soft Purple Shading
+      startOffsetSec: (21 + usShift) * 3600 + 1800,        // 21:30 UTC+8
+      endOffsetSec: (23 + usShift) * 3600 + 1800,        // 23:30 UTC+8
+      fillColor: 'rgba(156, 39, 176, 0.15)',  // Purple
       borderColor: 'rgba(156, 39, 176, 0.4)',
       textColor: '#ab47bc',
     });
