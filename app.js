@@ -30,16 +30,14 @@ function initEventListeners() {
       panelBottom.classList.add('hidden');
     }
 
+    // Immediately resize charts to new DOM container dimensions BEFORE setting data or range
+    resizeCharts();
     renderChartData();
 
-    // Preserve exact zoom/pan position when toggling view mode
-    setTimeout(() => {
-      resizeCharts();
-      if (savedRange) {
-        if (chartTop) chartTop.timeScale().setVisibleLogicalRange(savedRange);
-        if (isDualLayout && chartBottom) chartBottom.timeScale().setVisibleLogicalRange(savedRange);
-      }
-    }, 50);
+    if (savedRange) {
+      if (chartTop) chartTop.timeScale().setVisibleLogicalRange(savedRange);
+      if (isDualLayout && chartBottom) chartBottom.timeScale().setVisibleLogicalRange(savedRange);
+    }
   });
 
   // Level Checkbox Event Listeners
