@@ -144,12 +144,12 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
         targetCtx.lineWidth = 1;
         targetCtx.strokeRect(left, top, width, height);
 
-        // Label text below box
+        // Label text below box (bottom center)
         targetCtx.fillStyle = config.textColor;
         targetCtx.font = '600 12px Inter, sans-serif';
-        targetCtx.textAlign = 'left';
+        targetCtx.textAlign = 'center';
         targetCtx.textBaseline = 'top';
-        targetCtx.fillText(config.title, left + 6, bottom + 6);
+        targetCtx.fillText(config.title, left + (width / 2), bottom + 6);
       }
     }
   });
