@@ -19,6 +19,11 @@ function initEventListeners() {
 
     if (isDualLayout) {
       panelBottom.classList.remove('hidden');
+      if (chartBottom) {
+        chartBottom.applyOptions({
+          timeScale: { visible: false }
+        });
+      }
     } else {
       panelBottom.classList.add('hidden');
     }
