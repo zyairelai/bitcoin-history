@@ -52,6 +52,38 @@ function getAdjacentWeekday(currentDateStr, step) {
   return null;
 }
 
+// Helper: Check if date is in US Daylight Saving Time (2nd Sunday of March to 1st Sunday of November)
+function isUSSummerTime(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dateObj = new Date(Date.UTC(y, m - 1, d));
+  
+  // 2nd Sunday in March
+  const mar14 = new Date(Date.UTC(y, 2, 14));
+  const usDstStart = new Date(Date.UTC(y, 2, 14 - ((mar14.getUTCDay() + 1) % 7)));
+  
+  // 1st Sunday in November
+  const nov7 = new Date(Date.UTC(y, 10, 7));
+  const usDstEnd = new Date(Date.UTC(y, 10, 7 - ((nov7.getUTCDay() + 1) % 7)));
+
+  return dateObj >= usDstStart && dateObj < usDstEnd;
+}
+
+// Helper: Check if date is in UK Daylight Saving Time (Last Sunday of March to Last Sunday of October)
+function isUKSummerTime(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dateObj = new Date(Date.UTC(y, m - 1, d));
+
+  // Last Sunday in March
+  const mar31 = new Date(Date.UTC(y, 2, 31));
+  const ukDstStart = new Date(Date.UTC(y, 2, 31 - ((mar31.getUTCDay() + 1) % 7)));
+
+  // Last Sunday in October
+  const oct31 = new Date(Date.UTC(y, 9, 31));
+  const ukDstEnd = new Date(Date.UTC(y, 9, 31 - ((oct31.getUTCDay() + 1) % 7)));
+
+  return dateObj >= ukDstStart && dateObj < ukDstEnd;
+}
+
 // Helper: Get previous weekday date string (e.g., Monday's previous weekday is Friday)
 function getPreviousWeekdayDateStr(dateStr) {
   const [yyyy, mm, dd] = dateStr.split('-').map(Number);

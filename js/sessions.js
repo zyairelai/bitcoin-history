@@ -20,14 +20,18 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
   const dayCandles = rawKlineData.filter(item => item.time >= targetDayStartSec && item.time <= targetDayEndSec);
   if (dayCandles.length === 0) return;
 
+  // Dynamic DST Shifts
+  const ukShift = isUKSummerTime(selectedDate) ? 0 : 1; // London shift
+  const usShift = isUSSummerTime(selectedDate) ? 0 : 1; // US/NQ shift
+
   // 1. Draw Colored Session Shading Boxes with High/Low Bounds & Label
   const sessionBoxConfigs = [];
 
   if (showFrankfurt) {
     sessionBoxConfigs.push({
       title: 'Frankfurt',
-      startOffsetSec: 12 * 3600,       // 12:00 UTC+8
-      endOffsetSec: 14 * 3600 + 1800,  // 14:30 UTC+8
+      startOffsetSec: (12 + ukShift) * 3600,              // 12:00 (Summer) or 13:00 (Winter) UTC+8
+      endOffsetSec: (14 + ukShift) * 3600 + 1800,         // 14:30 (Summer) or 15:30 (Winter) UTC+8
       fillColor: 'rgba(255, 179, 0, 0.15)',   // Soft Amber / Gold Shading
       borderColor: 'rgba(255, 179, 0, 0.4)',
       textColor: '#ffb300',
@@ -37,8 +41,8 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
   if (showLondon) {
     sessionBoxConfigs.push({
       title: 'London',
-      startOffsetSec: 15 * 3600,       // 15:00 UTC+8
-      endOffsetSec: 17 * 3600,        // 17:00 UTC+8
+      startOffsetSec: (15 + ukShift) * 3600,              // 15:00 (Summer) or 16:00 (Winter) UTC+8
+      endOffsetSec: (17 + ukShift) * 3600,               // 17:00 (Summer) or 18:00 (Winter) UTC+8
       fillColor: 'rgba(76, 175, 80, 0.15)',   // Soft Emerald Green Shading
       borderColor: 'rgba(76, 175, 80, 0.4)',
       textColor: '#4caf50',
@@ -48,8 +52,8 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
   if (showNQ) {
     sessionBoxConfigs.push({
       title: 'NQ',
-      startOffsetSec: 17 * 3600 + 1800, // 17:30 UTC+8
-      endOffsetSec: 19 * 3600,        // 19:00 UTC+8
+      startOffsetSec: (17 + usShift) * 3600 + 1800,        // 17:30 (Summer) or 18:30 (Winter) UTC+8
+      endOffsetSec: (19 + usShift) * 3600,               // 19:00 (Summer) or 20:00 (Winter) UTC+8
       fillColor: 'rgba(239, 83, 80, 0.15)',   // Soft Red / Coral Shading
       borderColor: 'rgba(239, 83, 80, 0.4)',
       textColor: '#ef5350',
@@ -59,8 +63,8 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
   if (showPreMarket) {
     sessionBoxConfigs.push({
       title: 'Pre Market',
-      startOffsetSec: 20 * 3600 + 1800, // 20:30 UTC+8
-      endOffsetSec: 21 * 3600,        // 21:00 UTC+8
+      startOffsetSec: (20 + usShift) * 3600 + 1800,        // 20:30 (Summer) or 21:30 (Winter) UTC+8
+      endOffsetSec: (21 + usShift) * 3600,               // 21:00 (Summer) or 22:00 (Winter) UTC+8
       fillColor: 'rgba(41, 98, 255, 0.15)',   // Soft Royal Blue Shading
       borderColor: 'rgba(41, 98, 255, 0.4)',
       textColor: '#2962ff',
@@ -70,8 +74,8 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
   if (showNewYork) {
     sessionBoxConfigs.push({
       title: 'New York',
-      startOffsetSec: 21 * 3600 + 1800, // 21:30 UTC+8
-      endOffsetSec: 23 * 3600 + 1800, // 23:30 UTC+8
+      startOffsetSec: (21 + usShift) * 3600 + 1800,        // 21:30 (Summer) or 22:30 (Winter) UTC+8
+      endOffsetSec: (23 + usShift) * 3600 + 1800,        // 23:30 (Summer) or 00:30 (Winter) UTC+8
       fillColor: 'rgba(156, 39, 176, 0.15)',  // Soft Purple Shading
       borderColor: 'rgba(156, 39, 176, 0.4)',
       textColor: '#ab47bc',

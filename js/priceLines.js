@@ -10,7 +10,7 @@ function clearPriceLines(linesArray, targetSeries) {
   linesArray.length = 0;
 }
 
-// Compute & Draw Prev 1D, 0800-1200 / 0800-1400, Extend Lines for a specific chart series
+// Compute & Draw Prev 1D, 0800-1200 / Asia 2, Extend Lines for a specific chart series
 function drawPriceLinesForSeries(targetSeries, linesArray) {
   clearPriceLines(linesArray, targetSeries);
 
@@ -44,10 +44,20 @@ function drawPriceLinesForSeries(targetSeries, linesArray) {
       if (c.low < prevLow) prevLow = c.low;
     });
 
-    const range = prevHigh - prevLow;
-    const prevMid = prevLow + (range * 0.5);
-    const prev75 = prevLow + (range * 0.75);
-    const prev25 = prevLow + (range * 0.25);
+    const prevMid = (prevHigh + prevLow) / 2;
+
+    // Follow zones.py exact calculations with integer parity adjustments
+    let sumHM = prevHigh + prevMid;
+    if (Number.isInteger(sumHM) && sumHM % 2 !== 0) {
+      sumHM += 1;
+    }
+    const prev75 = sumHM / 2;
+
+    let sumLM = prevLow + prevMid;
+    if (Number.isInteger(sumLM) && sumLM % 2 !== 0) {
+      sumLM -= 1;
+    }
+    const prev25 = sumLM / 2;
 
     const lineSpecs = [
       { price: prevHigh, color: '#ffffff', lineStyle: LightweightCharts.LineStyle.Solid, lineWidth: 2, enabled: true },
@@ -135,10 +145,11 @@ function drawPriceLinesForSeries(targetSeries, linesArray) {
     }
   }
 
-  // 0800-1400 Asia Session
+  // Asia Session 2: 0800-1400 (Summer) or 0800-1500 (Winter DST shift)
   if (showAsia2) {
+    const ukShift = isUKSummerTime(selectedDate) ? 0 : 1;
     const asia2StartSec = targetDayStartSec + (8 * 3600);
-    const asia2EndSec = targetDayStartSec + (14 * 3600);
+    const asia2EndSec = targetDayStartSec + ((14 + ukShift) * 3600);
 
     const candlesAsia2 = rawKlineData.filter(item => item.time >= asia2StartSec && item.time < asia2EndSec);
     if (candlesAsia2.length > 0) {
