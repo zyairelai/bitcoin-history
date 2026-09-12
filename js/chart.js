@@ -187,13 +187,13 @@ function renderChartData() {
 
   let dayRawCandles = rawKlineData.filter(item => item.time >= targetDayStartSec && item.time <= targetDayEndSec);
 
-  // If SESSION toggle is enabled, hide candles before 08:00 (one candle before 08:00) and after 20:00 UTC+8
+  // If SESSION toggle is enabled, hide candles before 05:00 (one candle before 05:00) and after 20:00 UTC+8
   if (showSession && dayRawCandles.length > 0) {
-    const start0800Sec = targetDayStartSec + (8 * 3600);
+    const start0500Sec = targetDayStartSec + (5 * 3600);
     const end2000Sec = targetDayStartSec + (20 * 3600);
 
-    const idx0800 = dayRawCandles.findIndex(c => c.time >= start0800Sec);
-    const minTime = (idx0800 > 0) ? dayRawCandles[idx0800 - 1].time : start0800Sec;
+    const idx0500 = dayRawCandles.findIndex(c => c.time >= start0500Sec);
+    const minTime = (idx0500 > 0) ? dayRawCandles[idx0500 - 1].time : start0500Sec;
 
     dayRawCandles = dayRawCandles.filter(c => c.time >= minTime && c.time <= end2000Sec);
   }

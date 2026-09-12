@@ -16,10 +16,10 @@ function handlePlaybackKey(e) {
     let dayCandles = rawKlineData.filter(item => item.time >= targetDayStartSec && item.time <= targetDayEndSec);
 
     if (showSession && dayCandles.length > 0) {
-      const start0800Sec = targetDayStartSec + (8 * 3600);
+      const start0500Sec = targetDayStartSec + (5 * 3600);
       const end2000Sec = targetDayStartSec + (20 * 3600);
-      const idx0800 = dayCandles.findIndex(c => c.time >= start0800Sec);
-      const minTime = (idx0800 > 0) ? dayCandles[idx0800 - 1].time : start0800Sec;
+      const idx0500 = dayCandles.findIndex(c => c.time >= start0500Sec);
+      const minTime = (idx0500 > 0) ? dayCandles[idx0500 - 1].time : start0500Sec;
       dayCandles = dayCandles.filter(c => c.time >= minTime && c.time <= end2000Sec);
     }
 
