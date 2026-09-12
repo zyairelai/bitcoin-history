@@ -1,0 +1,524 @@
+:root {
+  --bg-dark: #0e1117;
+  --header-bg: #131722;
+  --header-border: #2a2e39;
+  --text-main: #d1d4dc;
+  --text-muted: #787b86;
+  --blue-active: #2962ff;
+  --green-up: #26a69a;
+  --red-down: #ef5350;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-family);
+  overflow: hidden;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Header Top Bar */
+.top-bar {
+  display: flex;
+  align-items: center;
+  height: 42px;
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+  padding: 0 12px;
+  gap: 8px;
+  user-select: none;
+  z-index: 20;
+}
+
+.header-divider {
+  width: 1px;
+  height: 20px;
+  background-color: var(--header-border);
+  margin: 0 2px;
+}
+
+/* Candle & Heikin Ashi Toggle Button */
+.candle-icon-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.candle-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--header-border);
+}
+
+.candle-icon-btn.active {
+  color: #2962ff;
+  border-color: rgba(41, 98, 255, 0.4);
+  background-color: rgba(41, 98, 255, 0.1);
+}
+
+.timeframe-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tf-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.tf-btn:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.tf-btn.active {
+  color: #2962ff;
+  font-weight: 700;
+}
+
+/* Checkbox Toggle Group */
+.level-toggles-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.level-toggles-group.session-group {
+  margin-left: auto;
+}
+
+.toggle-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: var(--text-main);
+  user-select: none;
+  font-size: 12px;
+}
+
+.toggle-checkbox-label input[type="checkbox"] {
+  accent-color: var(--blue-active);
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+}
+
+.toggle-checkbox-label span {
+  transition: color 0.15s;
+}
+
+.toggle-checkbox-label:hover span {
+  color: #ffffff;
+}
+
+/* Date Controls & Stepper UI */
+.date-controls {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-stepper-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.date-stepper-btn {
+  background-color: #1e222d;
+  border: 1px solid var(--header-border);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.date-stepper-btn:hover:not(:disabled) {
+  background-color: #252a37;
+  border-color: var(--blue-active);
+  color: #ffffff;
+}
+
+.date-stepper-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: transparent;
+}
+
+/* Fixed width date box wrapper to prevent moving/jumping layout */
+.date-box-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: #1e222d;
+  border: 1px solid var(--blue-active);
+  width: 148px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+  user-select: none;
+}
+
+.date-box-wrapper:hover {
+  background-color: #252a37;
+}
+
+/* Fixed 32px width for dayname text so MON, WED, THU all take identical width */
+.date-dayname-text {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  width: 32px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.date-display-text {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* Playback Control Button */
+.playback-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #1e222d;
+  border: 1px solid var(--header-border);
+  color: var(--text-main);
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 0 10px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
+  user-select: none;
+}
+
+.playback-btn:hover {
+  background-color: #252a37;
+  color: #ffffff;
+}
+
+.playback-btn.active {
+  background-color: rgba(41, 98, 255, 0.15);
+  border-color: var(--blue-active);
+  color: #2962ff;
+  box-shadow: 0 0 8px rgba(41, 98, 255, 0.3);
+}
+
+.btn {
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: var(--blue-active);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: #1e51db;
+}
+
+/* Custom Calendar Dropdown Popup */
+.calendar-modal {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 250px;
+  background-color: #1e222d;
+  border: 1px solid var(--header-border);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  padding: 12px;
+  z-index: 100;
+  font-family: var(--font-family);
+  user-select: none;
+}
+
+.calendar-modal.hidden {
+  display: none;
+}
+
+.cal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.cal-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.cal-nav-btn {
+  background: transparent;
+  border: 1px solid var(--header-border);
+  color: var(--text-main);
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.cal-nav-btn:hover:not(:disabled) {
+  background-color: #2a2e39;
+  color: #fff;
+}
+
+.cal-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.cal-weekdays .weekend-col {
+  color: #4a5568;
+}
+
+.cal-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.cal-day-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  border-radius: 4px;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.cal-day-cell:hover:not(.disabled) {
+  background-color: var(--blue-active);
+  color: #ffffff;
+}
+
+.cal-day-cell.selected {
+  background-color: var(--blue-active);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Greyed-out weekend & future dates */
+.cal-day-cell.disabled {
+  color: #3b4252 !important;
+  background-color: rgba(255, 255, 255, 0.02);
+  cursor: not-allowed !important;
+  opacity: 0.4;
+}
+
+.cal-day-cell.empty {
+  cursor: default;
+}
+
+/* Layout Toggle Icon Button */
+.layout-icon-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-main);
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+.layout-icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.layout-icon-btn.active {
+  color: #2962ff;
+  border-color: rgba(41, 98, 255, 0.4);
+  background-color: rgba(41, 98, 255, 0.1);
+}
+
+/* Main Chart Canvas Section */
+.chart-section {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-dark);
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-panel {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  border-bottom: 1px solid var(--header-border);
+}
+
+.chart-panel.hidden {
+  display: none;
+}
+
+.chart-container {
+  width: 100%;
+  height: 100%;
+}
+
+.session-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(14, 17, 23, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 25;
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.loading-overlay.hidden {
+  display: none;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--blue-active);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Footer Status Bar */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 24px;
+  padding: 0 12px;
+  background-color: var(--header-bg);
+  border-top: 1px solid var(--header-border);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.status-dot.online {
+  background-color: var(--green-up);
+  box-shadow: 0 0 6px var(--green-up);
+}
+
+.status-dot.offline {
+  background-color: var(--red-down);
+}

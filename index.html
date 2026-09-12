@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bitcoin History</title>
+  <meta name="description"
+    content="Professional lightweight candlestick trading chart for BTCUSDT using Binance Kline API and TradingView Lightweight Charts.">
+
+  <!-- Google Fonts & Lightweight Charts CDN -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Header Top Bar -->
+    <header class="top-bar">
+      <!-- Layout Button (Grid Icon for Single vs Dual Split Chart View) -->
+      <button class="layout-icon-btn" id="layout-toggle" title="Toggle Dual Split Chart Layout">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+        </svg>
+      </button>
+
+      <div class="header-divider"></div>
+
+      <!-- Icon button to toggle Candlestick vs Heikin Ashi -->
+      <button class="candle-icon-btn" id="chart-type-toggle" title="Click to toggle Candlestick / Heikin-Ashi mode">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="9" y1="2" x2="9" y2="6"></line>
+          <line x1="9" y1="18" x2="9" y2="22"></line>
+          <rect x="6" y="6" width="6" height="12" rx="1"></rect>
+          <line x1="17" y1="2" x2="17" y2="10"></line>
+          <line x1="17" y1="14" x2="17" y2="22"></line>
+          <rect x="14" y="10" width="6" height="4" rx="1"></rect>
+        </svg>
+      </button>
+
+      <div class="header-divider"></div>
+
+      <!-- Timeframe Buttons (1m, 3m, 5m, 15m, 1H) -->
+      <div class="timeframe-group" id="timeframe-group">
+        <button class="tf-btn" data-tf="1m">1m</button>
+        <button class="tf-btn" data-tf="3m">3m</button>
+        <button class="tf-btn active" data-tf="5m">5m</button>
+        <button class="tf-btn" data-tf="15m">15m</button>
+        <button class="tf-btn" data-tf="1h">1H</button>
+      </div>
+
+      <div class="header-divider"></div>
+
+      <!-- Checkboxes (Fibb, 0800-1200, 0800-1400, Extend) -->
+      <div class="level-toggles-group">
+        <label class="toggle-checkbox-label" title="Enable/Disable 25% and 75% price lines">
+          <input type="checkbox" id="toggle-25-75">
+          <span>Fibb</span>
+        </label>
+        <label class="toggle-checkbox-label"
+          title="Enable/Disable 08:00-12:00 UTC+8 Asia Session High & Low solid red lines">
+          <input type="checkbox" id="toggle-asia-8-12">
+          <span>0800-1200</span>
+        </label>
+        <label class="toggle-checkbox-label"
+          title="Enable/Disable 08:00-14:00 UTC+8 Asia Session High & Low solid red lines">
+          <input type="checkbox" id="toggle-asia-8-14">
+          <span>0800-1400</span>
+        </label>
+        <label class="toggle-checkbox-label"
+          title="Enable/Disable Extend (25% gap) solid yellow price lines beyond PDH and PDL">
+          <input type="checkbox" id="toggle-extend">
+          <span>Extend</span>
+        </label>
+      </div>
+
+      <div class="header-divider"></div>
+
+      <!-- Stepper Date Controls (< Wed 2026-09-02 >) -->
+      <div class="date-controls">
+        <div class="date-stepper-container">
+          <button class="date-stepper-btn" id="date-prev-day" title="Previous Weekday">&lt;</button>
+
+          <div class="date-box-wrapper" id="date-box-wrapper" title="Click to open calendar">
+            <span class="date-dayname-text" id="date-dayname-text">Wed</span>
+            <span class="date-display-text" id="date-display-text">2026-09-02</span>
+          </div>
+
+          <button class="date-stepper-btn" id="date-next-day" title="Next Weekday">&gt;</button>
+        </div>
+
+        <!-- Custom Weekday-Only Calendar Modal -->
+        <div id="calendar-modal" class="calendar-modal hidden">
+          <div class="cal-header">
+            <button id="cal-prev-month" class="cal-nav-btn">&lt;</button>
+            <span id="cal-month-year-title" class="cal-title">September 2026</span>
+            <button id="cal-next-month" class="cal-nav-btn">&gt;</button>
+          </div>
+          <div class="cal-weekdays">
+            <span class="weekend-col">Su</span>
+            <span>Mo</span>
+            <span>Tu</span>
+            <span>We</span>
+            <span>Th</span>
+            <span>Fr</span>
+            <span class="weekend-col">Sa</span>
+          </div>
+          <div class="cal-days-grid" id="cal-days-grid">
+            <!-- Generated dynamically in JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Session Checkboxes (Session | Frankfurt, London, NQ, Pre Market, New York) -->
+      <div class="level-toggles-group session-group">
+        <div class="header-divider"></div>
+
+        <label class="toggle-checkbox-label"
+          title="Enable/Disable vertical session lines (One candle before 08:00 till 20:00 UTC+8)">
+          <input type="checkbox" id="toggle-session">
+          <span>Session</span>
+        </label>
+        <label class="toggle-checkbox-label" title="Enable/Disable Frankfurt session box (12:00-14:30 UTC+8)">
+          <input type="checkbox" id="toggle-frankfurt">
+          <span>Frankfurt</span>
+        </label>
+        <label class="toggle-checkbox-label" title="Enable/Disable London session box (15:00-17:00 UTC+8)">
+          <input type="checkbox" id="toggle-london">
+          <span>London</span>
+        </label>
+        <label class="toggle-checkbox-label" title="Enable/Disable NQ session box (17:30-19:00 UTC+8)">
+          <input type="checkbox" id="toggle-nq">
+          <span>NQ</span>
+        </label>
+        <label class="toggle-checkbox-label" title="Enable/Disable Pre Market session box (20:30-21:00 UTC+8)">
+          <input type="checkbox" id="toggle-premarket">
+          <span>Pre Market</span>
+        </label>
+        <label class="toggle-checkbox-label" title="Enable/Disable New York session box (21:30-23:30 UTC+8)">
+          <input type="checkbox" id="toggle-newyork">
+          <span>New York</span>
+        </label>
+      </div>
+
+      <div class="header-divider"></div>
+
+      <!-- PLAYBACK Button -->
+      <button class="playback-btn" id="playback-btn"
+        title="Toggle Bar Playback Mode (Use Left/Right arrow keys to step bars from 12:00 UTC+8)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        <span>PLAYBACK</span>
+      </button>
+    </header>
+
+    <!-- Main Chart Section (Single or Split Dual Chart View) -->
+    <main class="chart-section" id="chart-section">
+      <!-- Top Chart Panel (Raw Candlesticks) -->
+      <div class="chart-panel" id="panel-top">
+        <div id="chart-container-top" class="chart-container"></div>
+        <canvas id="session-canvas-top" class="session-canvas"></canvas>
+      </div>
+
+      <!-- Bottom Chart Panel (Heikin-Ashi) - Hidden in single layout mode -->
+      <div class="chart-panel hidden" id="panel-bottom">
+        <div id="chart-container-bottom" class="chart-container"></div>
+        <canvas id="session-canvas-bottom" class="session-canvas"></canvas>
+      </div>
+
+      <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+        <span>Fetching Binance Klines...</span>
+      </div>
+    </main>
+
+    <!-- Status Bar -->
+    <footer class="status-bar">
+      <div class="status-item">
+        <span class="status-dot online" id="status-dot"></span>
+        <span id="status-text">Connected to Binance API</span>
+      </div>
+      <div class="status-item">
+        <span>DataSource: <strong>Binance BTCUSDT Klines</strong></span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="js/utils.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/sessions.js"></script>
+  <script src="js/priceLines.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/playback.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>

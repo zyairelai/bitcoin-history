@@ -1,0 +1,128 @@
+// Helper: Calculate latest available past weekday (skipping weekends and current/future days)
+function getLatestPastWeekday() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  
+  d.setDate(d.getDate() - 1);
+  
+  while (d.getDay() === 0 || d.getDay() === 6) {
+    d.setDate(d.getDate() - 1);
+  }
+  
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+// Helper: Get 3-letter day name (e.g., "Mon", "Tue", "Wed")
+function getDayName(dateStr) {
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dateObj = new Date(Date.UTC(y, m - 1, d));
+  return days[dateObj.getUTCDay()];
+}
+
+// Helper: Step date forward or backward skipping weekends, strictly past, and >= 2024-01-01
+function getAdjacentWeekday(currentDateStr, step) {
+  const [yyyy, mm, dd] = currentDateStr.split('-').map(Number);
+  const date = new Date(Date.UTC(yyyy, mm - 1, dd));
+  
+  const minDate = new Date(Date.UTC(2024, 0, 1));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let count = 0;
+  while (count < 10) {
+    date.setUTCDate(date.getUTCDate() + step);
+    const dayOfWeek = date.getUTCDay();
+    
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      if (date >= minDate && date < today) {
+        const resY = date.getUTCFullYear();
+        const resM = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const resD = String(date.getUTCDate()).padStart(2, '0');
+        return `${resY}-${resM}-${resD}`;
+      } else {
+        return null;
+      }
+    }
+    count++;
+  }
+  return null;
+}
+
+// Helper: Get previous weekday date string (e.g., Monday's previous weekday is Friday)
+function getPreviousWeekdayDateStr(dateStr) {
+  const [yyyy, mm, dd] = dateStr.split('-').map(Number);
+  const date = new Date(Date.UTC(yyyy, mm - 1, dd));
+
+  date.setUTCDate(date.getUTCDate() - 1);
+  while (date.getUTCDay() === 0 || date.getUTCDay() === 6) {
+    date.setUTCDate(date.getUTCDate() - 1);
+  }
+
+  const resY = date.getUTCFullYear();
+  const resM = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const resD = String(date.getUTCDate()).padStart(2, '0');
+  return `${resY}-${resM}-${resD}`;
+}
+
+// EMA Calculation Function across entire historical window
+function calculateEMA(data, period) {
+  const emaData = [];
+  const k = 2 / (period + 1);
+  let prevEma = null;
+
+  for (let i = 0; i < data.length; i++) {
+    const close = data[i].close;
+    if (i < period - 1) {
+      continue;
+    }
+    if (prevEma === null) {
+      let sum = 0;
+      for (let j = i - period + 1; j <= i; j++) {
+        sum += data[j].close;
+      }
+      prevEma = sum / period;
+    } else {
+      prevEma = close * k + prevEma * (1 - k);
+    }
+    emaData.push({ time: data[i].time, value: prevEma });
+  }
+  return emaData;
+}
+
+/**
+ * Heikin-Ashi Candle Conversion
+ */
+function convertToHeikinAshi(data) {
+  if (!data || data.length === 0) return [];
+  const haData = [];
+
+  for (let i = 0; i < data.length; i++) {
+    const curr = data[i];
+    const haClose = (curr.open + curr.high + curr.low + curr.close) / 4;
+    let haOpen;
+
+    if (i === 0) {
+      haOpen = (curr.open + curr.close) / 2;
+    } else {
+      const prevHa = haData[i - 1];
+      haOpen = (prevHa.open + prevHa.close) / 2;
+    }
+
+    const haHigh = Math.max(curr.high, haOpen, haClose);
+    const haLow = Math.min(curr.low, haOpen, haClose);
+
+    haData.push({
+      time: curr.time,
+      open: haOpen,
+      high: haHigh,
+      low: haLow,
+      close: haClose,
+    });
+  }
+
+  return haData;
+}
