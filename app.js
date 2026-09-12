@@ -14,8 +14,6 @@ function initEventListeners() {
 
   // Layout Toggle Button Event (Single vs Dual Split View)
   layoutToggleBtn.addEventListener('click', () => {
-    const savedRange = chartTop ? chartTop.timeScale().getVisibleLogicalRange() : null;
-
     isDualLayout = !isDualLayout;
     layoutToggleBtn.classList.toggle('active', isDualLayout);
 
@@ -30,13 +28,15 @@ function initEventListeners() {
       panelBottom.classList.add('hidden');
     }
 
-    // Immediately resize charts to new DOM container dimensions BEFORE setting data or range
+    // Immediately resize charts and update data without range jumping
     resizeCharts();
     renderChartData();
 
-    if (savedRange) {
-      if (chartTop) chartTop.timeScale().setVisibleLogicalRange(savedRange);
-      if (isDualLayout && chartBottom) chartBottom.timeScale().setVisibleLogicalRange(savedRange);
+    if (isDualLayout && chartTop && chartBottom) {
+      const range = chartTop.timeScale().getVisibleLogicalRange();
+      if (range) {
+        chartBottom.timeScale().setVisibleLogicalRange(range);
+      }
     }
   });
 
