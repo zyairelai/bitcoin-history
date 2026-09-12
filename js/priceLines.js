@@ -15,7 +15,8 @@ function drawPriceLinesForSeries(targetSeries, linesArray) {
   clearPriceLines(linesArray, targetSeries);
 
   const [y, m, d] = selectedDate.split('-').map(Number);
-  const targetDayStartSec = Math.floor(Date.UTC(y, m - 1, d, 0, 0, 0) / 1000) - (8 * 3600);
+  const targetUtcStartSec = Math.floor(Date.UTC(y, m - 1, d, 0, 0, 0) / 1000);
+  const targetDayStartSec = targetUtcStartSec - (8 * 3600);
 
   const selectedDateObj = new Date(Date.UTC(y, m - 1, d));
   const isMonday = selectedDateObj.getUTCDay() === 1;
@@ -23,16 +24,15 @@ function drawPriceLinesForSeries(targetSeries, linesArray) {
   let prevDayCandles = [];
 
   if (isMonday) {
-    // On Monday, PREV 1D High/Low includes both Saturday and Sunday (48h weekend window)
-    const satStartSec = targetDayStartSec - (48 * 3600);
-    const sunEndSec = targetDayStartSec - 1;
-    prevDayCandles = rawKlineData.filter(item => item.time >= satStartSec && item.time <= sunEndSec);
+    // On Monday, PREV 1D High/Low (Weekend Range) is Sat 00:00 UTC to Sun 23:59 UTC
+    const satStartUtcSec = targetUtcStartSec - (48 * 3600);
+    const sunEndUtcSec = targetUtcStartSec - 1;
+    prevDayCandles = rawKlineData.filter(item => item.time >= satStartUtcSec && item.time <= sunEndUtcSec);
   } else {
-    const prevWeekdayStr = getPreviousWeekdayDateStr(selectedDate);
-    const [py, pm, pd] = prevWeekdayStr.split('-').map(Number);
-    const prevDayStartSec = Math.floor(Date.UTC(py, pm - 1, pd, 0, 0, 0) / 1000) - (8 * 3600);
-    const prevDayEndSec = prevDayStartSec + (24 * 3600) - 1;
-    prevDayCandles = rawKlineData.filter(item => item.time >= prevDayStartSec && item.time <= prevDayEndSec);
+    // Previous UTC day (00:00:00 UTC to 23:59:59 UTC)
+    const prevDayStartUtcSec = targetUtcStartSec - (24 * 3600);
+    const prevDayEndUtcSec = targetUtcStartSec - 1;
+    prevDayCandles = rawKlineData.filter(item => item.time >= prevDayStartUtcSec && item.time <= prevDayEndUtcSec);
   }
 
   if (prevDayCandles.length > 0) {
