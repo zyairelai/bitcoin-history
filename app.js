@@ -14,6 +14,8 @@ function initEventListeners() {
 
   // Layout Toggle Button Event (Single vs Dual Split View)
   layoutToggleBtn.addEventListener('click', () => {
+    const savedRange = chartTop ? chartTop.timeScale().getVisibleLogicalRange() : null;
+
     isDualLayout = !isDualLayout;
     layoutToggleBtn.classList.toggle('active', isDualLayout);
 
@@ -30,14 +32,12 @@ function initEventListeners() {
 
     renderChartData();
 
-    // Force chart resize & sync range immediately
+    // Preserve exact zoom/pan position when toggling view mode
     setTimeout(() => {
       resizeCharts();
-      if (isDualLayout && chartTop) {
-        const range = chartTop.timeScale().getVisibleLogicalRange();
-        if (range) {
-          chartBottom.timeScale().setVisibleLogicalRange(range);
-        }
+      if (savedRange) {
+        if (chartTop) chartTop.timeScale().setVisibleLogicalRange(savedRange);
+        if (isDualLayout && chartBottom) chartBottom.timeScale().setVisibleLogicalRange(savedRange);
       }
     }, 50);
   });
