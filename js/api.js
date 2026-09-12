@@ -57,13 +57,13 @@ async function fetchKlines() {
     chartTop.timeScale().fitContent();
     chartBottom.timeScale().fitContent();
 
-    statusDot.className = 'status-dot online';
-    statusText.textContent = `Historical Data Loaded (${selectedDate} ${currentInterval} UTC+8)`;
+    if (statusDot) statusDot.className = 'status-dot online';
+    if (statusText) statusText.textContent = `Historical Data Loaded (${selectedDate} ${currentInterval} UTC+8)`;
 
   } catch (err) {
     console.error(err);
-    statusDot.className = 'status-dot offline';
-    statusText.textContent = 'Fetch Error';
+    if (statusDot) statusDot.className = 'status-dot offline';
+    if (statusText) statusText.textContent = 'Fetch Error';
   } finally {
     setLoading(false);
   }

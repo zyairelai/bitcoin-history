@@ -145,6 +145,31 @@ function initCharts() {
     isSyncingRange = false;
   });
 
+  // Synchronize Crosshair vertical movement across both charts
+  let isSyncingCrosshair = false;
+
+  chartTop.subscribeCrosshairMove(param => {
+    if (isSyncingCrosshair || !isDualLayout) return;
+    isSyncingCrosshair = true;
+    if (param && param.time) {
+      chartBottom.setCrosshairPosition(NaN, param.time, seriesBottom);
+    } else {
+      chartBottom.clearCrosshairPosition();
+    }
+    isSyncingCrosshair = false;
+  });
+
+  chartBottom.subscribeCrosshairMove(param => {
+    if (isSyncingCrosshair || !isDualLayout) return;
+    isSyncingCrosshair = true;
+    if (param && param.time) {
+      chartTop.setCrosshairPosition(NaN, param.time, seriesTop);
+    } else {
+      chartTop.clearCrosshairPosition();
+    }
+    isSyncingCrosshair = false;
+  });
+
   // Redraw overlays on visible range change
   chartTop.timeScale().subscribeVisibleTimeRangeChange(() => updateAllSessionCanvases());
   chartBottom.timeScale().subscribeVisibleTimeRangeChange(() => updateAllSessionCanvases());
