@@ -8,9 +8,23 @@ async function fetchKlines() {
 
   try {
     const [y, m, d] = selectedDate.split('-').map(Number);
-    
+    const selectedDateObj = new Date(Date.UTC(y, m - 1, d));
     const targetStartTime = Date.UTC(y, m - 1, d, 0, 0, 0) - (8 * 3600 * 1000);
-    const targetEndTime = targetStartTime + (24 * 60 * 60 * 1000) - 1;
+    
+    // Determine end time depending on daysMode
+    let rangeEndTimeMs = targetStartTime + (24 * 60 * 60 * 1000) - 1;
+    if (daysMode === '2D') {
+      // Start 1 day prior
+    } else if (daysMode === '3D') {
+      // Start 2 days prior
+    } else if (daysMode === '1W') {
+      // End on Friday of the week
+      const dayOfWeek = selectedDateObj.getUTCDay();
+      const daysUntilFriday = (5 - dayOfWeek + 7) % 7;
+      rangeEndTimeMs = targetStartTime + (daysUntilFriday * 24 * 3600 * 1000) + (24 * 3600 * 1000) - 1;
+    }
+
+    const targetEndTime = rangeEndTimeMs;
 
     let intervalMinutes = 5;
     if (currentInterval === '1m') intervalMinutes = 1;
@@ -19,7 +33,8 @@ async function fetchKlines() {
     else if (currentInterval === '15m') intervalMinutes = 15;
     else if (currentInterval === '1h') intervalMinutes = 60;
 
-    const fetchLookbackMs = (4 * 24 * 60 * 60 * 1000) + (250 * intervalMinutes * 60 * 1000);
+    // Fetch lookback: include extra 10 days for week view & EMA calculation buffer
+    const fetchLookbackMs = (10 * 24 * 60 * 60 * 1000) + (250 * intervalMinutes * 60 * 1000);
     const fullFetchStart = targetStartTime - fetchLookbackMs;
 
     rawKlineData = [];

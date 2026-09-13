@@ -125,6 +125,52 @@ function calculateEMA(data, period) {
   return emaData;
 }
 
+// Helper: Extract numeric UTC offset hours from string (e.g., "UTC+8" -> 8, "UTC-5" -> -5, "UTC" -> 0)
+function getTimezoneOffsetHours(tzStr) {
+  if (!tzStr || tzStr === 'UTC') return 0;
+  const match = tzStr.match(/UTC([+-]\d+)/);
+  return match ? parseInt(match[1], 10) : 0;
+}
+
+/**
+ * Format timestamp into "Tue 8 Sep 2026 13:07" style based on selectedTimezone (used for crosshair hover tooltip)
+ */
+function formatFullDateTime(timestamp, tzStr) {
+  const offsetHours = getTimezoneOffsetHours(tzStr);
+  const date = new Date((timestamp + (offsetHours * 3600)) * 1000);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  const dayName = days[date.getUTCDay()];
+  const dayOfMonth = date.getUTCDate();
+  const monthName = months[date.getUTCMonth()];
+  const year = date.getUTCFullYear();
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+
+  return `${dayName} ${dayOfMonth} ${monthName} ${hours}:${minutes}`;
+}
+
+/**
+ * Format timestamp into concise time string "HH:mm" (or "DD Sep HH:mm" for day boundaries) for standard clean axis ticks
+ */
+function formatTimeOnly(timestamp, tzStr) {
+  const offsetHours = getTimezoneOffsetHours(tzStr);
+  const date = new Date((timestamp + (offsetHours * 3600)) * 1000);
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+
+  // If 00:00 start of day tick mark, display day/month short code (e.g. 13 Sep)
+  if (hours === '00' && minutes === '00') {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const dayOfMonth = date.getUTCDate();
+    const monthName = months[date.getUTCMonth()];
+    return `${dayOfMonth} ${monthName}`;
+  }
+
+  return `${hours}:${minutes}`;
+}
+
 /**
  * Heikin-Ashi Candle Conversion
  */

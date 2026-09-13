@@ -33,6 +33,12 @@ let isDualLayout = false;
 let isPlaybackMode = false;
 let playbackIndex = -1; // Current index of visible candles in dayRawCandles when in Playback mode
 
+// Day Display Range Mode ('1D', '2D', '3D', '1W')
+let daysMode = '1D';
+
+// Display Timezone Offset ('UTC+8' or 'UTC')
+let selectedTimezone = 'UTC+8';
+
 // Level Toggles State (Default FALSE)
 let showFibb = false;
 let showAsia1 = false;
@@ -67,6 +73,9 @@ const timeframeGroup = document.getElementById('timeframe-group');
 const layoutToggleBtn = document.getElementById('layout-toggle');
 const panelBottom = document.getElementById('panel-bottom');
 const loadingOverlay = document.getElementById('loading-overlay');
+
+const daysModeSelect = document.getElementById('days-mode-select');
+const timezoneSelect = document.getElementById('timezone-select');
 
 // Checkbox Toggles
 const toggle25_75Input = document.getElementById('toggle-25-75');

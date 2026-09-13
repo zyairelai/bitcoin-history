@@ -1,4 +1,3 @@
-// Chart Options Builder
 function createChartOptions(container) {
   return {
     width: container.clientWidth,
@@ -7,7 +6,7 @@ function createChartOptions(container) {
       background: { type: 'solid', color: '#0e1117' },
       textColor: '#787b86',
       fontSize: 12,
-      fontFamily: "'Inter', sans-serif",
+      fontFamily: "'JetBrains Mono', monospace",
     },
     grid: {
       vertLines: { visible: false },
@@ -40,10 +39,7 @@ function createChartOptions(container) {
     },
     localization: {
       timeFormatter: (timestamp) => {
-        const date = new Date((timestamp + (8 * 3600)) * 1000);
-        const hours = String(date.getUTCHours()).padStart(2, '0');
-        const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-        return `${hours}:${minutes}`;
+        return formatFullDateTime(timestamp, selectedTimezone);
       },
     },
     timeScale: {
@@ -54,18 +50,7 @@ function createChartOptions(container) {
       fixLeftEdge: true,
       fixRightEdge: true,
       tickMarkFormatter: (time) => {
-        const date = new Date((time + (8 * 3600)) * 1000);
-        const hours = String(date.getUTCHours()).padStart(2, '0');
-        const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-        return `${hours}:${minutes}`;
-      },
-    },
-    localization: {
-      timeFormatter: (timestamp) => {
-        const date = new Date((timestamp + (8 * 3600)) * 1000);
-        const hours = String(date.getUTCHours()).padStart(2, '0');
-        const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-        return `${hours}:${minutes}`;
+        return formatTimeOnly(time, selectedTimezone);
       },
     },
     handleScale: {
@@ -202,26 +187,64 @@ function setLoading(loading) {
   }
 }
 
+/**
+ * Helper to compute the visible time range start and end timestamps (seconds)
+ * based on selectedDate, daysMode ('1D', '2D', '3D', '1W'), and showSession.
+ */
+function calculateDisplayTimeBounds(selectedDateStr, mode, sessionOnly) {
+  const [y, m, d] = selectedDateStr.split('-').map(Number);
+  const selectedDateObj = new Date(Date.UTC(y, m - 1, d));
+  const targetDayStartSec = Math.floor(Date.UTC(y, m - 1, d, 0, 0, 0) / 1000) - (8 * 3600); // 00:00 UTC+8 in Unix sec
+  const targetDayEndSec = targetDayStartSec + (24 * 3600) - 1; // 23:59:59 UTC+8
+
+  if (sessionOnly) {
+    // If Session checkbox is checked, focus on selected date 05:00 to 23:59:59 UTC+8
+    const startSec = targetDayStartSec + (5 * 3600);
+    const endSec = targetDayStartSec + (24 * 3600) - 1;
+    return { startSec, endSec };
+  }
+
+  if (mode === '1D') {
+    return { startSec: targetDayStartSec, endSec: targetDayEndSec };
+  }
+
+  if (mode === '2D') {
+    // Current day + 1 previous calendar day
+    const startSec = targetDayStartSec - (24 * 3600);
+    return { startSec, endSec: targetDayEndSec };
+  }
+
+  if (mode === '3D') {
+    // Current day + 2 previous calendar days
+    // If Monday selected, 3D includes Sun (1 day back) and Sat (2 days back)
+    const startSec = targetDayStartSec - (2 * 24 * 3600);
+    return { startSec, endSec: targetDayEndSec };
+  }
+
+  if (mode === '1W') {
+    // Current week: previous Saturday all the way to current week's Friday 23:59:59
+    const dayOfWeek = selectedDateObj.getUTCDay(); // 0:Sun, 1:Mon, 2:Tue, 3:Wed, 4:Thu, 5:Fri, 6:Sat
+    // Find Friday of current selected date's week
+    const daysUntilFriday = (5 - dayOfWeek + 7) % 7;
+    const weekFridayStartSec = targetDayStartSec + (daysUntilFriday * 24 * 3600);
+    const weekFridayEndSec = weekFridayStartSec + (24 * 3600) - 1;
+
+    // Previous Saturday is 6 days prior to Friday (Friday - 6 days)
+    const prevSatStartSec = weekFridayStartSec - (6 * 24 * 3600);
+
+    return { startSec: prevSatStartSec, endSec: weekFridayEndSec };
+  }
+
+  return { startSec: targetDayStartSec, endSec: targetDayEndSec };
+}
+
 // Render Chart Data on Both Top and Bottom Charts
 function renderChartData() {
   if (!rawKlineData || rawKlineData.length === 0) return;
 
-  const [y, m, d] = selectedDate.split('-').map(Number);
-  const targetDayStartSec = Math.floor(Date.UTC(y, m - 1, d, 0, 0, 0) / 1000) - (8 * 3600);
-  const targetDayEndSec = targetDayStartSec + (24 * 3600) - 1;
+  const { startSec, endSec } = calculateDisplayTimeBounds(selectedDate, daysMode, showSession);
 
-  let dayRawCandles = rawKlineData.filter(item => item.time >= targetDayStartSec && item.time <= targetDayEndSec);
-
-  // If SESSION toggle is enabled, hide candles before 05:00 (one candle before 05:00) and after 20:00 UTC+8
-  if (showSession && dayRawCandles.length > 0) {
-    const start0500Sec = targetDayStartSec + (5 * 3600);
-    const end2000Sec = targetDayStartSec + (20 * 3600);
-
-    const idx0500 = dayRawCandles.findIndex(c => c.time >= start0500Sec);
-    const minTime = (idx0500 > 0) ? dayRawCandles[idx0500 - 1].time : start0500Sec;
-
-    dayRawCandles = dayRawCandles.filter(c => c.time >= minTime && c.time <= end2000Sec);
-  }
+  let dayRawCandles = rawKlineData.filter(item => item.time >= startSec && item.time <= endSec);
 
   // Preserve full day subset before slicing for playback
   const fullSessionCandles = dayRawCandles;
@@ -229,7 +252,9 @@ function renderChartData() {
   // If in Playback Mode, cut off day candles at playbackIndex
   if (isPlaybackMode && fullSessionCandles.length > 0) {
     if (playbackIndex === -1) {
-      // Find 12:00 UTC+8 candle index within fullSessionCandles
+      // Find 12:00 UTC+8 candle index within fullSessionCandles for the selected date
+      const [y, m, d] = selectedDate.split('-').map(Number);
+      const targetDayStartSec = Math.floor(Date.UTC(y, m - 1, d, 0, 0, 0) / 1000) - (8 * 3600);
       const sec1200 = targetDayStartSec + (12 * 3600);
       const idx1200 = fullSessionCandles.findIndex(c => c.time >= sec1200);
       playbackIndex = idx1200 !== -1 ? idx1200 : Math.floor(fullSessionCandles.length / 2);
@@ -253,8 +278,8 @@ function renderChartData() {
   }
 
   // Calculate EMAs across raw data for both charts
-  const minTime = (showSession && dayRawCandles.length > 0) ? dayRawCandles[0].time : targetDayStartSec;
-  const maxTime = dayRawCandles.length > 0 ? dayRawCandles[dayRawCandles.length - 1].time : targetDayEndSec;
+  const minTime = dayRawCandles.length > 0 ? dayRawCandles[0].time : startSec;
+  const maxTime = dayRawCandles.length > 0 ? dayRawCandles[dayRawCandles.length - 1].time : endSec;
 
   const fullEma10 = calculateEMA(rawKlineData, 10).filter(item => item.time >= minTime && item.time <= maxTime);
   const fullEma20 = calculateEMA(rawKlineData, 20).filter(item => item.time >= minTime && item.time <= maxTime);

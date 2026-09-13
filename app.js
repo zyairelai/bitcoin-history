@@ -97,6 +97,29 @@ function initEventListeners() {
     fetchKlines();
   });
 
+  // Days Mode Range Dropdown Selection (1D, 2D, 3D, 1W)
+  if (daysModeSelect) {
+    daysModeSelect.addEventListener('change', (e) => {
+      daysMode = e.target.value;
+      fetchKlines();
+    });
+  }
+
+  // Timezone Dropup Selection (UTC+8 vs UTC)
+  if (timezoneSelect) {
+    timezoneSelect.addEventListener('change', (e) => {
+      selectedTimezone = e.target.value;
+      // Re-apply options so lightweight charts re-evaluates tickMarkFormatter and timeFormatter
+      if (chartTop) {
+        chartTop.applyOptions(createChartOptions(document.getElementById('chart-container-top')));
+      }
+      if (chartBottom) {
+        chartBottom.applyOptions(createChartOptions(document.getElementById('chart-container-bottom')));
+      }
+      renderChartData();
+    });
+  }
+
   initCalendarListeners();
   initPlaybackListeners();
 }

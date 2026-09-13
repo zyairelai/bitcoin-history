@@ -489,36 +489,52 @@ body, html {
   to { transform: rotate(360deg); }
 }
 
-/* Footer Status Bar */
-.status-bar {
+/* Header & Footer Select Controls */
+.header-select-btn {
+  background-color: #1e222d;
+  border: 1px solid var(--header-border);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.header-select-btn:hover, .header-select-btn:focus {
+  border-color: var(--blue-active);
+  background-color: #252a37;
+}
+
+/* Floating Timezone Select at Bottom-Right of Chart Scale */
+.timezone-select-wrapper {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  z-index: 30;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  height: 24px;
-  padding: 0 12px;
-  background-color: var(--header-bg);
-  border-top: 1px solid var(--header-border);
+}
+
+.chart-timezone-select {
+  background-color: #1e222d;
+  border: 1px solid #2a2e39;
+  color: #2962ff;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--text-muted);
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, color 0.15s, background-color 0.15s;
 }
 
-.status-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-}
-
-.status-dot.online {
-  background-color: var(--green-up);
-  box-shadow: 0 0 6px var(--green-up);
-}
-
-.status-dot.offline {
-  background-color: var(--red-down);
+.chart-timezone-select:hover, .chart-timezone-select:focus {
+  border-color: var(--blue-active);
+  background-color: #252a37;
+  color: #ffffff;
 }

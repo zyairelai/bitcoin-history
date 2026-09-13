@@ -119,9 +119,16 @@
         </div>
       </div>
 
-      <!-- Session Checkboxes (Session | ADE, London, NY) -->
+      <!-- Session Checkboxes & Days Range Select (1D, 2D, 3D, 1W) -->
       <div class="level-toggles-group session-group">
         <div class="header-divider"></div>
+
+        <select id="days-mode-select" class="header-select-btn" title="Select Date Display Window (1D, 2D, 3D, 1W)">
+          <option value="1D">1D</option>
+          <option value="2D">2D</option>
+          <option value="3D">3D</option>
+          <option value="1W">1W</option>
+        </select>
 
         <label class="toggle-checkbox-label"
           title="Enable/Disable vertical session lines (05:00 till 20:00 UTC+8)">
@@ -171,6 +178,39 @@
       <div id="loading-overlay" class="loading-overlay hidden">
         <div class="spinner"></div>
         <span>Fetching Binance Klines...</span>
+      </div>
+
+      <!-- Floating Timezone Selector at Bottom Right Time Scale -->
+      <div class="timezone-select-wrapper">
+        <select id="timezone-select" class="chart-timezone-select" title="Select Display Timezone">
+          <option value="UTC-12">UTC-12</option>
+          <option value="UTC-11">UTC-11</option>
+          <option value="UTC-10">UTC-10</option>
+          <option value="UTC-9">UTC-9</option>
+          <option value="UTC-8">UTC-8</option>
+          <option value="UTC-7">UTC-7</option>
+          <option value="UTC-6">UTC-6</option>
+          <option value="UTC-5">UTC-5</option>
+          <option value="UTC-4">UTC-4</option>
+          <option value="UTC-3">UTC-3</option>
+          <option value="UTC-2">UTC-2</option>
+          <option value="UTC-1">UTC-1</option>
+          <option value="UTC">UTC</option>
+          <option value="UTC+1">UTC+1</option>
+          <option value="UTC+2">UTC+2</option>
+          <option value="UTC+3">UTC+3</option>
+          <option value="UTC+4">UTC+4</option>
+          <option value="UTC+5">UTC+5</option>
+          <option value="UTC+6">UTC+6</option>
+          <option value="UTC+7">UTC+7</option>
+          <option value="UTC+8" selected>UTC+8</option>
+          <option value="UTC+9">UTC+9</option>
+          <option value="UTC+10">UTC+10</option>
+          <option value="UTC+11">UTC+11</option>
+          <option value="UTC+12">UTC+12</option>
+          <option value="UTC+13">UTC+13</option>
+          <option value="UTC+14">UTC+14</option>
+        </select>
       </div>
     </main>
   </div>
