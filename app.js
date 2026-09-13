@@ -43,6 +43,13 @@ function initEventListeners() {
   });
 
   // Level Checkbox Event Listeners
+  if (togglePDHLMInput) {
+    togglePDHLMInput.addEventListener('change', (e) => {
+      showPDHLM = e.target.checked;
+      updateAllPriceLines();
+    });
+  }
+
   toggle25_75Input.addEventListener('change', (e) => {
     showFibb = e.target.checked;
     updateAllPriceLines();

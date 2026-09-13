@@ -9,23 +9,14 @@ function handlePlaybackKey(e) {
 
     if (e.type === 'keyup') return; // Only process on keydown
 
-    const [y, m, d] = selectedDate.split('-').map(Number);
-    const targetDayStartSec = Math.floor(Date.UTC(y, m - 1, d, 0, 0, 0) / 1000) - (8 * 3600);
-    const targetDayEndSec = targetDayStartSec + (24 * 3600) - 1;
-
-    let dayCandles = rawKlineData.filter(item => item.time >= targetDayStartSec && item.time <= targetDayEndSec);
-
-    if (showSession && dayCandles.length > 0) {
-      const start0500Sec = targetDayStartSec + (5 * 3600);
-      const end2000Sec = targetDayStartSec + (20 * 3600);
-      const idx0500 = dayCandles.findIndex(c => c.time >= start0500Sec);
-      const minTime = (idx0500 > 0) ? dayCandles[idx0500 - 1].time : start0500Sec;
-      dayCandles = dayCandles.filter(c => c.time >= minTime && c.time <= end2000Sec);
-    }
+    const { startSec, endSec } = calculateDisplayTimeBounds(selectedDate, daysMode, showSession);
+    let dayCandles = rawKlineData.filter(item => item.time >= startSec && item.time <= endSec);
 
     if (dayCandles.length === 0) return;
 
-    // Minimum index floor is 12:00 UTC+8 candle
+    // Minimum index floor is 12:00 UTC+8 candle of selectedDate
+    const [y, m, d] = selectedDate.split('-').map(Number);
+    const targetDayStartSec = Math.floor(Date.UTC(y, m - 1, d, 0, 0, 0) / 1000) - (8 * 3600);
     const sec1200 = targetDayStartSec + (12 * 3600);
     let minIdx = dayCandles.findIndex(c => c.time >= sec1200);
     if (minIdx === -1) minIdx = 0;

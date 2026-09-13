@@ -61,6 +61,10 @@
 
       <!-- Checkboxes (Fibb, 0800-1200, 0800-1400, Extend) -->
       <div class="level-toggles-group">
+        <label class="toggle-checkbox-label" title="Enable/Disable Previous Daily High, Low, and Mid price lines">
+          <input type="checkbox" id="toggle-pdhlm" checked>
+          <span>PDHLM</span>
+        </label>
         <label class="toggle-checkbox-label" title="Enable/Disable 25% and 75% price lines">
           <input type="checkbox" id="toggle-25-75">
           <span>Fibb</span>
@@ -183,33 +187,9 @@
       <!-- Floating Timezone Selector at Bottom Right Time Scale -->
       <div class="timezone-select-wrapper">
         <select id="timezone-select" class="chart-timezone-select" title="Select Display Timezone">
-          <option value="UTC-12">UTC-12</option>
-          <option value="UTC-11">UTC-11</option>
-          <option value="UTC-10">UTC-10</option>
-          <option value="UTC-9">UTC-9</option>
-          <option value="UTC-8">UTC-8</option>
-          <option value="UTC-7">UTC-7</option>
-          <option value="UTC-6">UTC-6</option>
-          <option value="UTC-5">UTC-5</option>
-          <option value="UTC-4">UTC-4</option>
-          <option value="UTC-3">UTC-3</option>
-          <option value="UTC-2">UTC-2</option>
-          <option value="UTC-1">UTC-1</option>
           <option value="UTC">UTC</option>
-          <option value="UTC+1">UTC+1</option>
-          <option value="UTC+2">UTC+2</option>
-          <option value="UTC+3">UTC+3</option>
           <option value="UTC+4">UTC+4</option>
-          <option value="UTC+5">UTC+5</option>
-          <option value="UTC+6">UTC+6</option>
-          <option value="UTC+7">UTC+7</option>
           <option value="UTC+8" selected>UTC+8</option>
-          <option value="UTC+9">UTC+9</option>
-          <option value="UTC+10">UTC+10</option>
-          <option value="UTC+11">UTC+11</option>
-          <option value="UTC+12">UTC+12</option>
-          <option value="UTC+13">UTC+13</option>
-          <option value="UTC+14">UTC+14</option>
         </select>
       </div>
     </main>

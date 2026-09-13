@@ -159,6 +159,29 @@ function initCharts() {
   chartTop.timeScale().subscribeVisibleTimeRangeChange(() => updateAllSessionCanvases());
   chartBottom.timeScale().subscribeVisibleTimeRangeChange(() => updateAllSessionCanvases());
 
+  // Chart click handler to switch selectedDate to clicked day in multi-day (1W/3D/2D) views
+  const handleChartClick = (param) => {
+    if (!param || !param.time) return;
+    const offsetHours = getTimezoneOffsetHours(selectedTimezone);
+    const dateObj = new Date((param.time + (offsetHours * 3600)) * 1000);
+    
+    // Ignore weekend clicks (Sunday=0, Saturday=6)
+    if (dateObj.getUTCDay() === 0 || dateObj.getUTCDay() === 6) return;
+
+    const y = dateObj.getUTCFullYear();
+    const m = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(dateObj.getUTCDate()).padStart(2, '0');
+    const clickedDateStr = `${y}-${m}-${d}`;
+
+    if (clickedDateStr !== selectedDate) {
+      setSelectedDate(clickedDateStr);
+      updateAllPriceLines();
+    }
+  };
+
+  chartTop.subscribeClick(handleChartClick);
+  chartBottom.subscribeClick(handleChartClick);
+
   // Auto resize handling
   window.addEventListener('resize', () => {
     resizeCharts();
