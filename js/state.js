@@ -19,12 +19,12 @@ let priceLinesBottom = [];
 let ws = null;
 
 let currentSymbol = 'BTCUSDT';
-let currentInterval = '5m';
+let currentInterval = '3m';
 let selectedDate = getLatestPastWeekday();
 let rawKlineData = [];
 
 // Candle Mode (false = Raw Candlesticks, true = Heikin Ashi for single view)
-let isHeikinAshi = false;
+let isHeikinAshi = true;
 
 // Layout State (false = Single Chart, true = Dual Split Layout)
 let isDualLayout = false;
@@ -34,7 +34,7 @@ let isPlaybackMode = false;
 let playbackIndex = -1; // Current index of visible candles in dayRawCandles when in Playback mode
 
 // Day Display Range Mode ('1D', '2D', '3D', '1W')
-let daysMode = '1D';
+let daysMode = '1W';
 
 // Display Timezone Offset ('UTC+8' or 'UTC')
 let selectedTimezone = 'UTC+8';
