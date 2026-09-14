@@ -1,9 +1,7 @@
-// Helper: Calculate latest available past weekday (skipping weekends and current/future days)
+// Helper: Calculate latest available weekday (skipping weekends, including today)
 function getLatestPastWeekday() {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
-  
-  d.setDate(d.getDate() - 1);
   
   while (d.getDay() === 0 || d.getDay() === 6) {
     d.setDate(d.getDate() - 1);
@@ -23,14 +21,14 @@ function getDayName(dateStr) {
   return days[dateObj.getUTCDay()];
 }
 
-// Helper: Step date forward or backward skipping weekends, strictly past, and >= 2024-01-01
+// Helper: Step date forward or backward skipping weekends, up to today, and >= 2024-01-01
 function getAdjacentWeekday(currentDateStr, step) {
   const [yyyy, mm, dd] = currentDateStr.split('-').map(Number);
   const date = new Date(Date.UTC(yyyy, mm - 1, dd));
   
   const minDate = new Date(Date.UTC(2024, 0, 1));
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  today.setHours(23, 59, 59, 999);
 
   let count = 0;
   while (count < 10) {
@@ -38,7 +36,7 @@ function getAdjacentWeekday(currentDateStr, step) {
     const dayOfWeek = date.getUTCDay();
     
     if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-      if (date >= minDate && date < today) {
+      if (date >= minDate && date <= today) {
         const resY = date.getUTCFullYear();
         const resM = String(date.getUTCMonth() + 1).padStart(2, '0');
         const resD = String(date.getUTCDate()).padStart(2, '0');

@@ -13,7 +13,7 @@ function renderCalendar() {
   const daysInMonth = new Date(currentCalYear, currentCalMonth + 1, 0).getDate();
 
   const today = new Date();
-  today.setHours(0,0,0,0);
+  today.setHours(23, 59, 59, 999);
   const minBoundDate = new Date(Date.UTC(2024, 0, 1));
 
   for (let i = 0; i < firstDayOfMonth; i++) {
@@ -27,12 +27,12 @@ function renderCalendar() {
     dayCell.className = 'cal-day-cell';
     dayCell.textContent = day;
 
-    const dateObj = new Date(currentCalYear, currentCalMonth, day);
+    const dateObj = new Date(currentCalYear, currentCalMonth, day, 0, 0, 0);
     const dayOfWeek = dateObj.getDay();
 
     const dateStr = `${currentCalYear}-${String(currentCalMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-    if (dayOfWeek === 0 || dayOfWeek === 6 || dateObj >= today || dateObj < minBoundDate) {
+    if (dayOfWeek === 0 || dayOfWeek === 6 || dateObj > today || dateObj < minBoundDate) {
       dayCell.classList.add('disabled');
       dayCell.setAttribute('title', 'Weekends, future dates, and dates before 2024-01-01 cannot be selected');
     } else {

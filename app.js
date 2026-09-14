@@ -1,5 +1,38 @@
 // Main Entry Point & Event Listener Setup
 
+function updateChartTypeBtnUI() {
+  const chartTypeToggleBtn = document.getElementById('chart-type-toggle');
+  if (!chartTypeToggleBtn) return;
+
+  chartTypeToggleBtn.classList.toggle('active', isHeikinAshi);
+
+  const candlestickSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="9" y1="2" x2="9" y2="6"></line>
+    <line x1="9" y1="20" x2="9" y2="22"></line>
+    <rect x="6" y="6" width="6" height="14" rx="1"></rect>
+    <line x1="17" y1="4" x2="17" y2="8"></line>
+    <line x1="17" y1="16" x2="17" y2="20"></line>
+    <rect x="14" y="8" width="6" height="8" rx="1"></rect>
+  </svg>`;
+
+  const heikinAshiSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="9" y1="2" x2="9" y2="6"></line>
+    <line x1="9" y1="18" x2="9" y2="22"></line>
+    <rect x="6" y="6" width="6" height="12" rx="1"></rect>
+    <line x1="17" y1="2" x2="17" y2="10"></line>
+    <line x1="17" y1="14" x2="17" y2="22"></line>
+    <rect x="14" y="10" width="6" height="4" rx="1"></rect>
+  </svg>`;
+
+  if (isHeikinAshi) {
+    chartTypeToggleBtn.innerHTML = candlestickSvg;
+    chartTypeToggleBtn.title = "Heikin-Ashi Mode (Click for Candlesticks)";
+  } else {
+    chartTypeToggleBtn.innerHTML = heikinAshiSvg;
+    chartTypeToggleBtn.title = "Candlestick Mode (Click for Heikin-Ashi)";
+  }
+}
+
 function initEventListeners() {
   const chartTypeToggleBtn = document.getElementById('chart-type-toggle');
 
@@ -7,7 +40,7 @@ function initEventListeners() {
   if (chartTypeToggleBtn) {
     chartTypeToggleBtn.addEventListener('click', () => {
       isHeikinAshi = !isHeikinAshi;
-      chartTypeToggleBtn.classList.toggle('active', isHeikinAshi);
+      updateChartTypeBtnUI();
       renderChartData();
     });
   }
@@ -65,9 +98,29 @@ function initEventListeners() {
     updateAllPriceLines();
   });
 
-  toggleExtendInput.addEventListener('change', (e) => {
-    showExtend = e.target.checked;
-    updateAllPriceLines();
+  if (toggleExtendInput) {
+    toggleExtendInput.addEventListener('change', (e) => {
+      showExtend = e.target.checked;
+      updateAllPriceLines();
+    });
+  }
+
+  if (toggleExtendFibbInput) {
+    toggleExtendFibbInput.addEventListener('change', (e) => {
+      showExtendFibb = e.target.checked;
+      updateAllPriceLines();
+    });
+  }
+
+  // Setup active pressed state sync for all button toggle labels
+  document.querySelectorAll('.toggle-btn').forEach(btn => {
+    const input = btn.querySelector('input[type="checkbox"]');
+    if (input) {
+      btn.classList.toggle('active', input.checked);
+      input.addEventListener('change', () => {
+        btn.classList.toggle('active', input.checked);
+      });
+    }
   });
 
   toggleSessionInput.addEventListener('change', (e) => {
@@ -142,5 +195,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
   initCharts();
   initEventListeners();
+  updateChartTypeBtnUI();
   fetchKlines();
 });

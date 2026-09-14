@@ -82,9 +82,10 @@ function drawPriceLinesForSeries(targetSeries, linesArray) {
     });
 
     if (showExtend) {
-      const gap25 = prevMid - prev25;
-      const extendAbove = prevHigh + gap25;
-      const extendBelow = prevLow - gap25;
+      const range1d = prevHigh - prevLow;
+      const midDist = range1d / 2;
+      const extendAbove = prevHigh + midDist;
+      const extendBelow = prevLow - midDist;
 
       const plAbove = targetSeries.createPriceLine({
         price: extendAbove,
@@ -101,6 +102,33 @@ function drawPriceLinesForSeries(targetSeries, linesArray) {
         color: '#ffeb3b',
         lineWidth: 2,
         lineStyle: LightweightCharts.LineStyle.Solid,
+        axisLabelVisible: false,
+        title: '',
+      });
+      linesArray.push(plBelow);
+    }
+
+    if (showExtendFibb) {
+      const range1d = prevHigh - prevLow;
+      const quarterDist = range1d / 4;
+      const extendFibbAbove = prevHigh + quarterDist;
+      const extendFibbBelow = prevLow - quarterDist;
+
+      const plAbove = targetSeries.createPriceLine({
+        price: extendFibbAbove,
+        color: '#ffeb3b',
+        lineWidth: 2,
+        lineStyle: LightweightCharts.LineStyle.Dotted,
+        axisLabelVisible: false,
+        title: '',
+      });
+      linesArray.push(plAbove);
+
+      const plBelow = targetSeries.createPriceLine({
+        price: extendFibbBelow,
+        color: '#ffeb3b',
+        lineWidth: 2,
+        lineStyle: LightweightCharts.LineStyle.Dotted,
         axisLabelVisible: false,
         title: '',
       });

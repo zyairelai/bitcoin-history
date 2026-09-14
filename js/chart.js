@@ -291,12 +291,12 @@ function renderChartData() {
 
   if (isDualLayout) {
     // In Dual layout mode:
-    // When isHeikinAshi is FALSE: Top is Raw Candlesticks, Bottom is Heikin-Ashi
-    // When isHeikinAshi is TRUE: Top is Heikin-Ashi, Bottom is Raw Candlesticks
-    seriesTop.setData(isHeikinAshi ? dayHACandles : dayRawCandles);
-    seriesBottom.setData(isHeikinAshi ? dayRawCandles : dayHACandles);
+    // Default (isHeikinAshi is TRUE): Top is Raw Candlesticks, Bottom is Heikin-Ashi
+    // Switched (isHeikinAshi is FALSE): Top is Heikin-Ashi, Bottom is Raw Candlesticks
+    seriesTop.setData(isHeikinAshi ? dayRawCandles : dayHACandles);
+    seriesBottom.setData(isHeikinAshi ? dayHACandles : dayRawCandles);
   } else {
-    // In Single layout mode: Top chart toggles between Raw and Heikin-Ashi based on isHeikinAshi flag
+    // In Single layout mode: Top chart toggles between Heikin-Ashi (default true) and Raw Candlesticks (false)
     seriesTop.setData(isHeikinAshi ? dayHACandles : dayRawCandles);
   }
 
