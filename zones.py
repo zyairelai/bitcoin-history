@@ -243,7 +243,9 @@ def build_symbol_lines(SYMBOL, show_london=True, show_asia_mid=True, show_opens=
                 sun_last = sun_candles.iloc[-1]
                 weekend_high = max(sat_last['high'], sun_last['high'])
                 weekend_low = min(sat_last['low'], sun_last['low'])
+                weekend_mid = (weekend_high + weekend_low) / 2
                 lines.append(f"Weekend High : {colored(format_price(weekend_high), mondaycolor, attrs=['bold'])}")
+                lines.append(f"Weekend Mid  : {colored(format_price(weekend_mid), mondaycolor, attrs=['bold'])}")
                 lines.append(f"Weekend Low  : {colored(format_price(weekend_low), mondaycolor, attrs=['bold'])}")
         else:
             title_text = " Monday Range "
@@ -298,7 +300,22 @@ def build_symbol_lines(SYMBOL, show_london=True, show_asia_mid=True, show_opens=
             gap_str = f"{gap_val:.2f}"
         else:
             gap_str = format_price(gap_val)
-        lines.append(f"   Each Gap  :   {colored(gap_str, 'yellow', attrs=['bold'])}")
+        lines.append(f"   Each Gap  :   {colored(gap_str, 'white', attrs=['bold'])}")
+
+        lines.append("")
+        ext_title = " Extended "
+        ext_line = f"{ext_title:=^30}"
+        lines.append(colored(ext_line, 'yellow', attrs=['bold']))
+
+        p150 = h1d + gap_val * 2
+        p125 = h1d + gap_val
+        n125 = l1d - gap_val
+        n150 = l1d - gap_val * 2
+
+        lines.append(f"Prev 1D 150%  : {colored(format_price(p150), 'yellow', attrs=['bold'])}")
+        lines.append(f"Prev 1D 125%  : {colored(format_price(p125), 'yellow', attrs=['bold'])}")
+        lines.append(f"Prev 1D -125% : {colored(format_price(n125), 'yellow', attrs=['bold'])}")
+        lines.append(f"Prev 1D -150% : {colored(format_price(n150), 'yellow', attrs=['bold'])}")
 
     if SYDNEY_SESSION:
         if lines and lines[-1] != "": lines.append("")
