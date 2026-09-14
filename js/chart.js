@@ -84,6 +84,11 @@ function initCharts() {
     wickDownColor: '#ef5350',
     lastValueVisible: false,
     priceLineVisible: false,
+    priceFormat: {
+      type: 'price',
+      precision: 0,
+      minMove: 1,
+    },
   });
 
   ema10Top = chartTop.addLineSeries({ color: '#ff9800', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
@@ -100,6 +105,11 @@ function initCharts() {
     wickDownColor: '#ef5350',
     lastValueVisible: false,
     priceLineVisible: false,
+    priceFormat: {
+      type: 'price',
+      precision: 0,
+      minMove: 1,
+    },
   });
 
   ema10Bottom = chartBottom.addLineSeries({ color: '#ff9800', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });

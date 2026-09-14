@@ -61,9 +61,9 @@ function drawPriceLinesForSeries(targetSeries, linesArray) {
 
     const lineSpecs = [
       { price: prevHigh, color: '#ffffff', lineStyle: LightweightCharts.LineStyle.Solid, lineWidth: 2, enabled: showPDHLM },
-      { price: prev75,   color: '#ffffff', lineStyle: LightweightCharts.LineStyle.Dotted, lineWidth: 2, enabled: showFibb },
+      { price: prev75,   color: '#ffeb3b', lineStyle: LightweightCharts.LineStyle.Dotted, lineWidth: 2, enabled: showFibb },
       { price: prevMid,  color: '#ffffff', lineStyle: LightweightCharts.LineStyle.Dashed, lineWidth: 2, enabled: showPDHLM },
-      { price: prev25,   color: '#ffffff', lineStyle: LightweightCharts.LineStyle.Dotted, lineWidth: 2, enabled: showFibb },
+      { price: prev25,   color: '#ffeb3b', lineStyle: LightweightCharts.LineStyle.Dotted, lineWidth: 2, enabled: showFibb },
       { price: prevLow,  color: '#ffffff', lineStyle: LightweightCharts.LineStyle.Solid, lineWidth: 2, enabled: showPDHLM },
     ];
 

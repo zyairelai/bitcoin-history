@@ -59,6 +59,10 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
     const dayCandles = rawKlineData.filter(item => item.time >= dayStartSec && item.time <= dayStartSec + 24 * 3600 - 1);
     if (dayCandles.length === 0) return;
 
+    // Skip highlighting session boxes for weekends (Saturday=6, Sunday=0)
+    const dayOfWeek = dateObj.getUTCDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) return;
+
     // Dynamic DST Shifts
     const ukShift = isUKSummerTime(dateStr) ? 0 : 1; // London shift
     const usShift = isUSSummerTime(dateStr) ? 0 : 1; // US/NQ shift
