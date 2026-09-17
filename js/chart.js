@@ -170,13 +170,17 @@ function initCharts() {
   chartBottom.timeScale().subscribeVisibleTimeRangeChange(() => updateAllSessionCanvases());
 
   // Chart double-click handler to switch selectedDate to clicked day in multi-day (1W/3D/2D) views
-  let lastClickTime = 0;
-  let lastClickDateStr = null;
+  const handleChartDoubleClick = (chartObj, container, e) => {
+    if (!chartObj || !container) return;
+    const rect = container.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    if (mouseX < 0 || mouseX > rect.width) return;
 
-  const handleChartDoubleClick = (param) => {
-    if (!param || !param.time) return;
+    let timeSec = chartObj.timeScale().coordinateToTime(mouseX);
+    if (!timeSec) return;
+
     const offsetHours = getTimezoneOffsetHours(selectedTimezone);
-    const dateObj = new Date((param.time + (offsetHours * 3600)) * 1000);
+    const dateObj = new Date((timeSec + (offsetHours * 3600)) * 1000);
     
     // Ignore weekend clicks (Sunday=0, Saturday=6)
     if (dateObj.getUTCDay() === 0 || dateObj.getUTCDay() === 6) return;
@@ -186,23 +190,18 @@ function initCharts() {
     const d = String(dateObj.getUTCDate()).padStart(2, '0');
     const clickedDateStr = `${y}-${m}-${d}`;
 
-    const now = Date.now();
-    // Check if this click is a double click on the same date within 300ms
-    if (now - lastClickTime < 300 && lastClickDateStr === clickedDateStr) {
-      if (clickedDateStr !== selectedDate) {
-        setSelectedDate(clickedDateStr);
-        updateAllPriceLines();
-      }
-      lastClickTime = 0;
-      lastClickDateStr = null;
-    } else {
-      lastClickTime = now;
-      lastClickDateStr = clickedDateStr;
+    const minBound = '2024-01-01';
+    const maxBound = getLatestPastWeekday();
+    if (clickedDateStr < minBound || clickedDateStr > maxBound) return;
+
+    if (clickedDateStr !== selectedDate) {
+      setSelectedDate(clickedDateStr);
+      fetchKlines();
     }
   };
 
-  chartTop.subscribeClick(handleChartDoubleClick);
-  chartBottom.subscribeClick(handleChartDoubleClick);
+  containerTop.addEventListener('dblclick', (e) => handleChartDoubleClick(chartTop, containerTop, e));
+  containerBottom.addEventListener('dblclick', (e) => handleChartDoubleClick(chartBottom, containerBottom, e));
 
   // Auto resize handling
   window.addEventListener('resize', () => {
