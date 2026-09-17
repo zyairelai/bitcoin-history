@@ -76,7 +76,6 @@ const layoutToggleBtn = document.getElementById('layout-toggle');
 const panelBottom = document.getElementById('panel-bottom');
 const loadingOverlay = document.getElementById('loading-overlay');
 
-const daysModeSelect = document.getElementById('days-mode-select');
 const timezoneSelect = document.getElementById('timezone-select');
 
 // Checkbox Toggles

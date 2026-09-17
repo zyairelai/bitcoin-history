@@ -157,14 +157,6 @@ function initEventListeners() {
     fetchKlines();
   });
 
-  // Days Mode Range Dropdown Selection (1D, 2D, 3D, 1W)
-  if (daysModeSelect) {
-    daysModeSelect.addEventListener('change', (e) => {
-      daysMode = e.target.value;
-      fetchKlines();
-    });
-  }
-
   // Timezone Dropup Selection (UTC+8 vs UTC)
   if (timezoneSelect) {
     timezoneSelect.addEventListener('change', (e) => {
