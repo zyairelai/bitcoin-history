@@ -195,8 +195,7 @@ function initCharts() {
     if (clickedDateStr < minBound || clickedDateStr > maxBound) return;
 
     if (clickedDateStr !== selectedDate) {
-      setSelectedDate(clickedDateStr);
-      fetchKlines();
+      changeSelectedDate(clickedDateStr);
     }
   };
 

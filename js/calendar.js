@@ -41,9 +41,8 @@ function renderCalendar() {
       }
       dayCell.addEventListener('click', (e) => {
         e.stopPropagation();
-        setSelectedDate(dateStr);
         calendarModal.classList.add('hidden');
-        fetchKlines();
+        changeSelectedDate(dateStr);
       });
     }
 
@@ -58,6 +57,24 @@ function setSelectedDate(dateStr) {
   selectedDate = dateStr;
   dateDisplayText.textContent = selectedDate;
   dateDaynameText.textContent = getDayName(selectedDate);
+}
+
+function changeSelectedDate(dateStr) {
+  if (!dateStr || dateStr === selectedDate) return;
+  const oldDate = selectedDate;
+  setSelectedDate(dateStr);
+
+  if (rawKlineData && rawKlineData.length > 0 && isSameWeek(oldDate, dateStr)) {
+    if (showSession) {
+      renderChartData();
+    } else {
+      updateAllPriceLines();
+    }
+    datePrevBtn.disabled = !getAdjacentWeekday(selectedDate, -1);
+    dateNextBtn.disabled = !getAdjacentWeekday(selectedDate, 1);
+  } else {
+    fetchKlines();
+  }
 }
 
 function initCalendarListeners() {
@@ -82,16 +99,14 @@ function initCalendarListeners() {
   datePrevBtn.addEventListener('click', () => {
     const prevDate = getAdjacentWeekday(selectedDate, -1);
     if (prevDate) {
-      setSelectedDate(prevDate);
-      fetchKlines();
+      changeSelectedDate(prevDate);
     }
   });
 
   dateNextBtn.addEventListener('click', () => {
     const nextDate = getAdjacentWeekday(selectedDate, 1);
     if (nextDate) {
-      setSelectedDate(nextDate);
-      fetchKlines();
+      changeSelectedDate(nextDate);
     }
   });
 

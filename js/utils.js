@@ -82,6 +82,24 @@ function isUKSummerTime(dateStr) {
   return dateObj >= ukDstStart && dateObj < ukDstEnd;
 }
 
+// Helper: Check if two YYYY-MM-DD date strings fall in the same Friday-ending trading week
+function isSameWeek(dateStr1, dateStr2) {
+  if (!dateStr1 || !dateStr2) return false;
+  const [y1, m1, d1] = dateStr1.split('-').map(Number);
+  const dateObj1 = new Date(Date.UTC(y1, m1 - 1, d1));
+  const dayOfWeek1 = dateObj1.getUTCDay();
+  const daysUntilFri1 = (5 - dayOfWeek1 + 7) % 7;
+  const friTime1 = Date.UTC(y1, m1 - 1, d1) + (daysUntilFri1 * 86400000);
+
+  const [y2, m2, d2] = dateStr2.split('-').map(Number);
+  const dateObj2 = new Date(Date.UTC(y2, m2 - 1, d2));
+  const dayOfWeek2 = dateObj2.getUTCDay();
+  const daysUntilFri2 = (5 - dayOfWeek2 + 7) % 7;
+  const friTime2 = Date.UTC(y2, m2 - 1, d2) + (daysUntilFri2 * 86400000);
+
+  return friTime1 === friTime2;
+}
+
 // Helper: Get previous weekday date string (e.g., Monday's previous weekday is Friday)
 function getPreviousWeekdayDateStr(dateStr) {
   const [yyyy, mm, dd] = dateStr.split('-').map(Number);
