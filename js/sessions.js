@@ -68,78 +68,40 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries, d
     const usShift = isUSSummerTime(dateStr) ? 0 : 1; // US/NQ shift
 
     // Draw Colored Session Shading Boxes with High/Low Bounds & Label
-    const sessionBoxConfigs = [];
-
-    // ADE Macro Boxing: Asia (08:00 - 12:00), London (15:00 - 19:00), NewYork (20:30 - 23:30)
-    if (showADE) {
-      sessionBoxConfigs.push({
+    const sessionBoxConfigs = [
+      {
         title: 'Asia',
-        isAde: true,
-        startOffsetSec: 8 * 3600,                       // 08:00 UTC+8
-        endOffsetSec: 12 * 3600,                        // 12:00 UTC+8
-        fillColor: 'rgba(239, 83, 80, 0.15)',            // Red Shading
+        startOffsetSec: 8 * 3600,                        // 08:00 UTC+8
+        endOffsetSec: 12 * 3600,                         // 12:00 UTC+8
+        fillColor: 'rgba(239, 83, 80, 0.15)',             // Red Shading
         borderColor: 'rgba(239, 83, 80, 0.4)',
         textColor: '#ef5350',
-      });
-      sessionBoxConfigs.push({
+      },
+      {
         title: 'London',
-        isAde: true,
-        startOffsetSec: (15 + ukShift) * 3600,           // 15:00 (Summer) or 16:00 (Winter) UTC+8
-        endOffsetSec: (19 + ukShift) * 3600,             // 19:00 (Summer) or 20:00 (Winter) UTC+8
-        fillColor: 'rgba(76, 175, 80, 0.15)',            // Green Shading
+        startOffsetSec: (15 + ukShift) * 3600,            // 15:00 UTC+8
+        endOffsetSec: (18 + ukShift) * 3600,              // 18:00 UTC+8
+        fillColor: 'rgba(76, 175, 80, 0.15)',             // Green Shading
         borderColor: 'rgba(76, 175, 80, 0.4)',
         textColor: '#4caf50',
-      });
-      sessionBoxConfigs.push({
-        title: 'NewYork',
-        isAde: true,
-        startOffsetSec: (20 + usShift) * 3600 + 1800,    // 20:30 (Summer) or 21:30 (Winter) UTC+8
-        endOffsetSec: (23 + usShift) * 3600 + 1800,      // 23:30 (Summer) or 00:30 (Winter) UTC+8
-        fillColor: 'rgba(255, 235, 59, 0.15)',           // Yellow Shading
-        borderColor: 'rgba(255, 235, 59, 0.4)',
-        textColor: '#ffeb3b',
-      });
-    }
-
-    // London Sub-Sessions Group (London, NQ)
-    if (showLondonGroup) {
-      sessionBoxConfigs.push({
-        title: 'London',
-        startOffsetSec: (15 + ukShift) * 3600,              // 15:00 UTC+8
-        endOffsetSec: (17 + ukShift) * 3600,               // 17:00 UTC+8
-        fillColor: 'rgba(76, 175, 80, 0.15)',   // Emerald Green
-        borderColor: 'rgba(76, 175, 80, 0.4)',
-        textColor: '#4caf50',
-      });
-      sessionBoxConfigs.push({
-        title: 'NQ',
-        startOffsetSec: (17 + usShift) * 3600 + 1800,        // 17:30 UTC+8
-        endOffsetSec: (19 + ukShift) * 3600,               // 19:00 UTC+8
-        fillColor: 'rgba(239, 83, 80, 0.15)',   // Red / Coral
-        borderColor: 'rgba(239, 83, 80, 0.4)',
-        textColor: '#ef5350',
-      });
-    }
-
-    // NY Sub-Sessions Group (Pre Market, New York)
-    if (showNYGroup) {
-      sessionBoxConfigs.push({
-        title: 'Pre Market',
-        startOffsetSec: (20 + usShift) * 3600 + 1800,        // 20:30 UTC+8
-        endOffsetSec: (21 + usShift) * 3600,               // 21:00 UTC+8
-        fillColor: 'rgba(41, 98, 255, 0.15)',   // Royal Blue
-        borderColor: 'rgba(41, 98, 255, 0.4)',
-        textColor: '#2962ff',
-      });
-      sessionBoxConfigs.push({
-        title: 'New York',
-        startOffsetSec: (21 + usShift) * 3600 + 1800,        // 21:30 UTC+8
-        endOffsetSec: (23 + usShift) * 3600 + 1800,        // 23:30 UTC+8
-        fillColor: 'rgba(156, 39, 176, 0.15)',  // Purple
+      },
+      {
+        title: 'Pre-Market',
+        startOffsetSec: (20 + usShift) * 3600 + 1800,     // 20:30 UTC+8
+        endOffsetSec: (21 + usShift) * 3600,              // 21:00 UTC+8
+        fillColor: 'rgba(156, 39, 176, 0.15)',           // Purple Shading
         borderColor: 'rgba(156, 39, 176, 0.4)',
         textColor: '#ab47bc',
-      });
-    }
+      },
+      {
+        title: 'New York',
+        startOffsetSec: (21 + usShift) * 3600 + 1800,     // 21:30 UTC+8
+        endOffsetSec: (23 + usShift) * 3600 + 1800,       // 23:30 UTC+8
+        fillColor: 'rgba(255, 235, 59, 0.15)',            // Yellow Shading
+        borderColor: 'rgba(255, 235, 59, 0.4)',
+        textColor: '#ffeb3b',
+      }
+    ];
 
     sessionBoxConfigs.forEach(config => {
       const sessionStartSec = dayStartSec + config.startOffsetSec;
@@ -200,24 +162,16 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries, d
           targetCtx.lineWidth = 1;
           targetCtx.strokeRect(left, top, width, height);
 
-          // Hide ADE label text for London/NewYork when overlapping sub-session groups are active (Asia label remains visible)
-          const isAdeLabelHidden = config.isAde && (
-            (showLondonGroup && config.title === 'London') ||
-            (showNYGroup && config.title === 'NewYork')
-          );
+          // Calculate price range (High - Low) rounded to 1 decimal for NQ/BTC
+          const rangeDiff = (sHigh - sLow).toFixed(1);
+          const labelText = `${config.title} · ${rangeDiff}`;
 
-          if (!isAdeLabelHidden) {
-            // Calculate price range (High - Low) rounded to 1 decimal for NQ/BTC
-            const rangeDiff = (sHigh - sLow).toFixed(1);
-            const labelText = `${config.title} · ${rangeDiff}`;
-
-            // Label text below box (bottom center)
-            targetCtx.fillStyle = config.textColor;
-            targetCtx.font = '600 12px Inter, sans-serif';
-            targetCtx.textAlign = 'center';
-            targetCtx.textBaseline = 'top';
-            targetCtx.fillText(labelText, left + (width / 2), bottom + 6);
-          }
+          // Label text below box (bottom center)
+          targetCtx.fillStyle = config.textColor;
+          targetCtx.font = '600 12px Inter, sans-serif';
+          targetCtx.textAlign = 'center';
+          targetCtx.textBaseline = 'top';
+          targetCtx.fillText(labelText, left + (width / 2), bottom + 6);
         }
       }
     });

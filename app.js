@@ -152,20 +152,7 @@ function initEventListeners() {
     if (chartBottom && isDualLayout) chartBottom.timeScale().fitContent();
   });
 
-  toggleADEInput.addEventListener('change', (e) => {
-    showADE = e.target.checked;
-    updateAllSessionCanvases();
-  });
 
-  toggleLondonInput.addEventListener('change', (e) => {
-    showLondonGroup = e.target.checked;
-    updateAllSessionCanvases();
-  });
-
-  toggleNYInput.addEventListener('change', (e) => {
-    showNYGroup = e.target.checked;
-    updateAllSessionCanvases();
-  });
 
   // Timeframe Selection
   timeframeGroup.addEventListener('click', (e) => {

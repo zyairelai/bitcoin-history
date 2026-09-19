@@ -45,9 +45,6 @@ let showAsia3 = false;
 let showExtend = false;
 let showExtendFibb = false;
 let showSession = false;
-let showADE = true;
-let showLondonGroup = false;
-let showNYGroup = false;
 
 // Synchronizing flag to prevent circular range updates
 let isSyncingRange = false;
@@ -88,9 +85,6 @@ const toggleAsia8_20Input = document.getElementById('toggle-asia-8-20');
 const toggleExtendInput = document.getElementById('toggle-extend');
 const toggleExtendFibbInput = document.getElementById('toggle-extend-fibb');
 const toggleSessionInput = document.getElementById('toggle-session');
-const toggleADEInput = document.getElementById('toggle-ade');
-const toggleLondonInput = document.getElementById('toggle-london');
-const toggleNYInput = document.getElementById('toggle-newyork');
 
 const statusDot = document.getElementById('status-dot');
 const statusText = document.getElementById('status-text');
