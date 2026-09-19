@@ -41,7 +41,13 @@ function initEventListeners() {
     chartTypeToggleBtn.addEventListener('click', () => {
       isHeikinAshi = !isHeikinAshi;
       updateChartTypeBtnUI();
+      
+      // Preserve visible zoom level / range before rendering
+      const currentRange = chartTop ? chartTop.timeScale().getVisibleLogicalRange() : null;
       renderChartData();
+      if (chartTop && currentRange) {
+        chartTop.timeScale().setVisibleLogicalRange(currentRange);
+      }
     });
   }
 
