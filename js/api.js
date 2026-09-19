@@ -68,9 +68,13 @@ async function fetchKlines() {
       currentFetchStart = lastCloseTime + 1;
     }
 
+    // Preserve visible range across timeframe change
+    const visibleRangeTop = chartTop ? chartTop.timeScale().getVisibleLogicalRange() : null;
+
     renderChartData();
-    chartTop.timeScale().fitContent();
-    chartBottom.timeScale().fitContent();
+
+    if (chartTop) chartTop.timeScale().fitContent();
+    if (chartBottom && isDualLayout) chartBottom.timeScale().fitContent();
 
     if (statusDot) statusDot.className = 'status-dot online';
     if (statusText) statusText.textContent = `Historical Data Loaded (${selectedDate} ${currentInterval} UTC+8)`;

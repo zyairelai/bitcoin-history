@@ -66,8 +66,8 @@
           <input type="checkbox" id="toggle-session" hidden>
           <span>Today</span>
         </label>
-        <label class="toggle-btn" title="Enable/Disable ADE Macro Boxes: Asia (08-14), London (15-19), NY (20-23:45)">
-          <input type="checkbox" id="toggle-ade" hidden>
+        <label class="toggle-btn active" title="Enable/Disable ADE Macro Boxes: Asia (08-14), London (15-19), NY (20-23:45)">
+          <input type="checkbox" id="toggle-ade" checked hidden>
           <span>ADE</span>
         </label>
         <label class="toggle-btn" title="Enable/Disable London Sub-Sessions (Frankfurt, London, NQ)">
@@ -129,13 +129,13 @@
           <input type="checkbox" id="toggle-25-75" hidden>
           <span>Fibb</span>
         </label>
-        <label class="toggle-btn" title="Enable/Disable Ext 25% (25%/75% level beyond PDH/PDL) price lines">
+        <label class="toggle-btn" title="Enable/Disable 125% price lines">
           <input type="checkbox" id="toggle-extend-fibb" hidden>
-          <span>Ext 25%</span>
+          <span>125%</span>
         </label>
-        <label class="toggle-btn" title="Enable/Disable Extend (PDL/PDH +- 50% Mid level) price lines">
+        <label class="toggle-btn" title="Enable/Disable 150% price lines">
           <input type="checkbox" id="toggle-extend" hidden>
-          <span>Extend</span>
+          <span>150%</span>
         </label>
         <label class="toggle-btn" title="Enable/Disable 08:00-12:00 UTC+8 Asia Session High & Low solid red lines">
           <input type="checkbox" id="toggle-asia-8-12" hidden>
@@ -145,18 +145,12 @@
           <input type="checkbox" id="toggle-asia-8-14" hidden>
           <span>0800-1400</span>
         </label>
+        <label class="toggle-btn" title="Enable/Disable 08:00-20:00 UTC+8 Day Session High & Low solid red lines">
+          <input type="checkbox" id="toggle-asia-8-20" hidden>
+          <span>0800-2000</span>
+        </label>
       </div>
 
-      <div class="header-divider"></div>
-
-      <!-- PLAYBACK Button -->
-      <button class="playback-btn" id="playback-btn"
-        title="Toggle Bar Playback Mode (Use Left/Right arrow keys to step bars from 12:00 UTC+8)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-          <polygon points="5 3 19 12 5 21 5 3"></polygon>
-        </svg>
-        <span>PLAYBACK</span>
-      </button>
     </header>
 
     <!-- Main Chart Section (Single or Split Dual Chart View) -->
@@ -191,6 +185,7 @@
 
   <script src="js/utils.js"></script>
   <script src="js/state.js"></script>
+  <script src="js/events.js"></script>
   <script src="js/sessions.js"></script>
   <script src="js/priceLines.js"></script>
   <script src="js/chart.js"></script>

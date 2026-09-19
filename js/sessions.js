@@ -150,7 +150,7 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
       const sessionStartSec = dayStartSec + config.startOffsetSec;
       const sessionEndSec = dayStartSec + config.endOffsetSec;
 
-      const sessionCandles = dayCandles.filter(c => c.time >= sessionStartSec && c.time <= sessionEndSec);
+      const sessionCandles = rawKlineData.filter(c => c.time >= sessionStartSec && c.time <= sessionEndSec);
       if (sessionCandles.length === 0) return;
 
       let sHigh = -Infinity;
@@ -161,19 +161,37 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
         if (c.low < sLow) sLow = c.low;
       });
 
-      const firstTime = sessionCandles[0].time;
-      const lastTime = sessionCandles[sessionCandles.length - 1].time;
+      // Horizontal X bounds calculation using exact session candle timestamps
+      const firstCandle = sessionCandles[0];
+      const lastCandle = sessionCandles[sessionCandles.length - 1];
 
-      const x1 = targetChart.timeScale().timeToCoordinate(firstTime);
-      const x2 = targetChart.timeScale().timeToCoordinate(lastTime);
+      let x1 = targetChart.timeScale().timeToCoordinate(firstCandle.time);
+      let x2 = targetChart.timeScale().timeToCoordinate(lastCandle.time);
+
       const y1 = targetSeries.priceToCoordinate(sHigh);
       const y2 = targetSeries.priceToCoordinate(sLow);
 
       if (x1 !== null && x2 !== null && y1 !== null && y2 !== null) {
-        const left = Math.min(x1, x2) - 4;
-        const right = Math.max(x1, x2) + 4;
-        const top = Math.min(y1, y2);
-        const bottom = Math.max(y1, y2);
+        // Compute precise width per bar to align box flush with bar wicks
+        let barSpacing = 4;
+        if (sessionCandles.length > 1) {
+          barSpacing = Math.abs(x2 - x1) / (sessionCandles.length - 1);
+        }
+
+        const leftRaw = Math.min(x1, x2) - (barSpacing / 2);
+        const rightRaw = Math.max(x1, x2) + (barSpacing / 2);
+        const topRaw = Math.min(y1, y2);
+        const bottomRaw = Math.max(y1, y2);
+
+        // Clamp coordinates within visible canvas viewport bounds
+        const containerW = container.clientWidth;
+        const containerH = container.clientHeight;
+
+        const left = Math.max(-1000, Math.min(containerW + 1000, leftRaw));
+        const right = Math.max(-1000, Math.min(containerW + 1000, rightRaw));
+        const top = Math.max(-1000, Math.min(containerH + 1000, topRaw));
+        const bottom = Math.max(-1000, Math.min(containerH + 1000, bottomRaw));
+
         const width = right - left;
         const height = bottom - top;
 
@@ -182,17 +200,21 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
           targetCtx.fillStyle = config.fillColor;
           targetCtx.fillRect(left, top, width, height);
 
-          // Optional subtle border frame
+          // Subtle border frame
           targetCtx.strokeStyle = config.borderColor;
           targetCtx.lineWidth = 1;
           targetCtx.strokeRect(left, top, width, height);
+
+          // Calculate price range (High - Low) rounded to integer
+          const rangeDiff = Math.round(sHigh - sLow);
+          const labelText = `${config.title} · ${rangeDiff}u`;
 
           // Label text below box (bottom center)
           targetCtx.fillStyle = config.textColor;
           targetCtx.font = '600 12px Inter, sans-serif';
           targetCtx.textAlign = 'center';
           targetCtx.textBaseline = 'top';
-          targetCtx.fillText(config.title, left + (width / 2), bottom + 6);
+          targetCtx.fillText(labelText, left + (width / 2), bottom + 6);
         }
       }
     });

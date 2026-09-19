@@ -29,10 +29,6 @@ let isHeikinAshi = true;
 // Layout State (false = Single Chart, true = Dual Split Layout)
 let isDualLayout = false;
 
-// Bar Playback Mode State
-let isPlaybackMode = false;
-let playbackIndex = -1; // Current index of visible candles in dayRawCandles when in Playback mode
-
 // Day Display Range Mode ('1D', '2D', '3D', '1W')
 let daysMode = '1W';
 
@@ -44,10 +40,11 @@ let showPDHLM = true;
 let showFibb = false;
 let showAsia1 = false;
 let showAsia2 = false;
+let showAsia3 = false;
 let showExtend = false;
 let showExtendFibb = false;
 let showSession = false;
-let showADE = false;
+let showADE = true;
 let showLondonGroup = false;
 let showNYGroup = false;
 
@@ -83,6 +80,7 @@ const togglePDHLMInput = document.getElementById('toggle-pdhlm');
 const toggle25_75Input = document.getElementById('toggle-25-75');
 const toggleAsia8_12Input = document.getElementById('toggle-asia-8-12');
 const toggleAsia8_14Input = document.getElementById('toggle-asia-8-14');
+const toggleAsia8_20Input = document.getElementById('toggle-asia-8-20');
 const toggleExtendInput = document.getElementById('toggle-extend');
 const toggleExtendFibbInput = document.getElementById('toggle-extend-fibb');
 const toggleSessionInput = document.getElementById('toggle-session');

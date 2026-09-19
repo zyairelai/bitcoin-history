@@ -75,7 +75,13 @@ function initCharts() {
   chartTop = LightweightCharts.createChart(containerTop, createChartOptions(containerTop));
   chartBottom = LightweightCharts.createChart(containerBottom, createChartOptions(containerBottom));
 
-  // Top Chart Series (Raw Candlesticks)
+  // EMA Line Series (Added first so candles render on top)
+  ema10Top = chartTop.addLineSeries({ color: '#ff9800', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+  ema20Top = chartTop.addLineSeries({ color: '#4caf50', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+  ema50Top = chartTop.addLineSeries({ color: '#ff9800', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+  ema200Top = chartTop.addLineSeries({ color: '#e91e63', lineWidth: 3.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+
+  // Top Chart Candlestick Series
   seriesTop = chartTop.addCandlestickSeries({
     upColor: '#26a69a',
     downColor: '#ef5350',
@@ -91,12 +97,12 @@ function initCharts() {
     },
   });
 
-  ema10Top = chartTop.addLineSeries({ color: '#ff9800', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-  ema20Top = chartTop.addLineSeries({ color: '#4caf50', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-  ema50Top = chartTop.addLineSeries({ color: '#ff9800', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-  ema200Top = chartTop.addLineSeries({ color: '#e91e63', lineWidth: 3.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+  // Bottom Chart Series
+  ema10Bottom = chartBottom.addLineSeries({ color: '#ff9800', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+  ema20Bottom = chartBottom.addLineSeries({ color: '#4caf50', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+  ema50Bottom = chartBottom.addLineSeries({ color: '#ff9800', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+  ema200Bottom = chartBottom.addLineSeries({ color: '#e91e63', lineWidth: 3.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
 
-  // Bottom Chart Series (Heikin-Ashi)
   seriesBottom = chartBottom.addCandlestickSeries({
     upColor: '#26a69a',
     downColor: '#ef5350',
@@ -111,11 +117,6 @@ function initCharts() {
       minMove: 1,
     },
   });
-
-  ema10Bottom = chartBottom.addLineSeries({ color: '#ff9800', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-  ema20Bottom = chartBottom.addLineSeries({ color: '#4caf50', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-  ema50Bottom = chartBottom.addLineSeries({ color: '#ff9800', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-  ema200Bottom = chartBottom.addLineSeries({ color: '#e91e63', lineWidth: 3.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
 
   canvasTop = document.getElementById('session-canvas-top');
   ctxTop = canvasTop.getContext('2d');
@@ -165,9 +166,39 @@ function initCharts() {
     isSyncingCrosshair = false;
   });
 
-  // Redraw overlays on visible range change
-  chartTop.timeScale().subscribeVisibleTimeRangeChange(() => updateAllSessionCanvases());
-  chartBottom.timeScale().subscribeVisibleTimeRangeChange(() => updateAllSessionCanvases());
+  // Redraw overlays on visible range change & logical zoom/pan
+  const triggerOverlayRedraw = () => updateAllSessionCanvases();
+  chartTop.timeScale().subscribeVisibleTimeRangeChange(triggerOverlayRedraw);
+  chartTop.timeScale().subscribeVisibleLogicalRangeChange(triggerOverlayRedraw);
+  chartBottom.timeScale().subscribeVisibleTimeRangeChange(triggerOverlayRedraw);
+  chartBottom.timeScale().subscribeVisibleLogicalRangeChange(triggerOverlayRedraw);
+
+  // Redraw canvas continuously during active mouse drag / zoom operations
+  let isInteracting = false;
+  const onInteractionStart = () => {
+    if (!isInteracting) {
+      isInteracting = true;
+      const loop = () => {
+        updateAllSessionCanvases();
+        if (isInteracting) requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+    }
+  };
+  const onInteractionEnd = () => {
+    isInteracting = false;
+    updateAllSessionCanvases();
+  };
+
+  [containerTop, containerBottom].forEach(cnt => {
+    if (!cnt) return;
+    cnt.addEventListener('mousedown', onInteractionStart);
+    cnt.addEventListener('wheel', triggerOverlayRedraw, { passive: true });
+    cnt.addEventListener('mouseup', onInteractionEnd);
+    cnt.addEventListener('mouseleave', onInteractionEnd);
+    cnt.addEventListener('touchstart', onInteractionStart, { passive: true });
+    cnt.addEventListener('touchend', onInteractionEnd);
+  });
 
   // Chart double-click handler to switch selectedDate to clicked day in multi-day (1W/3D/2D) views
   const handleChartDoubleClick = (chartObj, container, e) => {
@@ -190,7 +221,7 @@ function initCharts() {
     const d = String(dateObj.getUTCDate()).padStart(2, '0');
     const clickedDateStr = `${y}-${m}-${d}`;
 
-    const minBound = '2024-01-01';
+    const minBound = '2017-08-17';
     const maxBound = getLatestPastWeekday();
     if (clickedDateStr < minBound || clickedDateStr > maxBound) return;
 
@@ -287,47 +318,21 @@ function renderChartData() {
 
   const { startSec, endSec } = calculateDisplayTimeBounds(selectedDate, daysMode, showSession);
 
-  let dayRawCandles = rawKlineData.filter(item => item.time >= startSec && item.time <= endSec);
-
-  // Preserve full day subset before slicing for playback
-  const fullSessionCandles = dayRawCandles;
-
-  // If in Playback Mode, cut off day candles at playbackIndex
-  if (isPlaybackMode && fullSessionCandles.length > 0) {
-    if (playbackIndex === -1) {
-      // Find 12:00 UTC+8 candle index within fullSessionCandles for the selected date
-      const [y, m, d] = selectedDate.split('-').map(Number);
-      const targetDayStartSec = Math.floor(Date.UTC(y, m - 1, d, 0, 0, 0) / 1000) - (8 * 3600);
-      const sec1200 = targetDayStartSec + (12 * 3600);
-      const idx1200 = fullSessionCandles.findIndex(c => c.time >= sec1200);
-      playbackIndex = idx1200 !== -1 ? idx1200 : Math.floor(fullSessionCandles.length / 2);
-    }
-    // Clamp playbackIndex within bounds
-    playbackIndex = Math.max(0, Math.min(fullSessionCandles.length - 1, playbackIndex));
-    dayRawCandles = fullSessionCandles.slice(0, playbackIndex + 1);
-  }
-
-  const dayHACandles = convertToHeikinAshi(dayRawCandles);
+  const activeRawData = rawKlineData.filter(item => item.time >= startSec && item.time <= endSec);
+  const rawHACandles = convertToHeikinAshi(activeRawData);
 
   if (isDualLayout) {
-    // In Dual layout mode:
-    // Default (isHeikinAshi is TRUE): Top is Raw Candlesticks, Bottom is Heikin-Ashi
-    // Switched (isHeikinAshi is FALSE): Top is Heikin-Ashi, Bottom is Raw Candlesticks
-    seriesTop.setData(isHeikinAshi ? dayRawCandles : dayHACandles);
-    seriesBottom.setData(isHeikinAshi ? dayHACandles : dayRawCandles);
+    seriesTop.setData(isHeikinAshi ? activeRawData : rawHACandles);
+    seriesBottom.setData(isHeikinAshi ? rawHACandles : activeRawData);
   } else {
-    // In Single layout mode: Top chart toggles between Heikin-Ashi (default true) and Raw Candlesticks (false)
-    seriesTop.setData(isHeikinAshi ? dayHACandles : dayRawCandles);
+    seriesTop.setData(isHeikinAshi ? rawHACandles : activeRawData);
   }
 
-  // Calculate EMAs across raw data for both charts
-  const minTime = dayRawCandles.length > 0 ? dayRawCandles[0].time : startSec;
-  const maxTime = dayRawCandles.length > 0 ? dayRawCandles[dayRawCandles.length - 1].time : endSec;
-
-  const fullEma10 = calculateEMA(rawKlineData, 10).filter(item => item.time >= minTime && item.time <= maxTime);
-  const fullEma20 = calculateEMA(rawKlineData, 20).filter(item => item.time >= minTime && item.time <= maxTime);
-  const fullEma50 = calculateEMA(rawKlineData, 50).filter(item => item.time >= minTime && item.time <= maxTime);
-  const fullEma200 = calculateEMA(rawKlineData, 200).filter(item => item.time >= minTime && item.time <= maxTime);
+  // Calculate EMAs across full historical window, then slice strictly to visible week window [startSec, endSec]
+  const fullEma10 = calculateEMA(rawKlineData, 10).filter(item => item.time >= startSec && item.time <= endSec);
+  const fullEma20 = calculateEMA(rawKlineData, 20).filter(item => item.time >= startSec && item.time <= endSec);
+  const fullEma50 = calculateEMA(rawKlineData, 50).filter(item => item.time >= startSec && item.time <= endSec);
+  const fullEma200 = calculateEMA(rawKlineData, 200).filter(item => item.time >= startSec && item.time <= endSec);
 
   ema10Top.setData(fullEma10);
   ema20Top.setData(fullEma20);

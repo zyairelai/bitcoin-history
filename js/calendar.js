@@ -14,7 +14,7 @@ function renderCalendar() {
 
   const today = new Date();
   today.setHours(23, 59, 59, 999);
-  const minBoundDate = new Date(Date.UTC(2024, 0, 1));
+  const minBoundDate = new Date(Date.UTC(2017, 7, 17)); // 2017-08-17 (Binance BTCUSDT inception)
 
   for (let i = 0; i < firstDayOfMonth; i++) {
     const emptyCell = document.createElement('div');
@@ -34,7 +34,7 @@ function renderCalendar() {
 
     if (dayOfWeek === 0 || dayOfWeek === 6 || dateObj > today || dateObj < minBoundDate) {
       dayCell.classList.add('disabled');
-      dayCell.setAttribute('title', 'Weekends, future dates, and dates before 2024-01-01 cannot be selected');
+      dayCell.setAttribute('title', 'Weekends, future dates, and dates before 2017-08-17 cannot be selected');
     } else {
       if (dateStr === selectedDate) {
         dayCell.classList.add('selected');
@@ -49,7 +49,7 @@ function renderCalendar() {
     calDaysGrid.appendChild(dayCell);
   }
 
-  calPrevBtn.disabled = (currentCalYear === 2024 && currentCalMonth === 0);
+  calPrevBtn.disabled = (currentCalYear === 2017 && currentCalMonth === 7);
   calNextBtn.disabled = (currentCalYear === today.getFullYear() && currentCalMonth === today.getMonth());
 }
 
@@ -63,6 +63,10 @@ function changeSelectedDate(dateStr) {
   if (!dateStr || dateStr === selectedDate) return;
   const oldDate = selectedDate;
   setSelectedDate(dateStr);
+
+  if (typeof updateEconomicOverlay === 'function') {
+    updateEconomicOverlay();
+  }
 
   if (rawKlineData && rawKlineData.length > 0 && isSameWeek(oldDate, dateStr)) {
     if (showSession) {

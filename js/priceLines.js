@@ -210,6 +210,43 @@ function drawPriceLinesForSeries(targetSeries, linesArray) {
       linesArray.push(plAsia2Low);
     }
   }
+
+  // Session 0800-2000 (08:00 - 20:00 UTC+8) Solid Red Lines
+  if (showAsia3) {
+    const asia3StartSec = targetDayStartSec + (8 * 3600);
+    const asia3EndSec = targetDayStartSec + (20 * 3600);
+
+    const candlesAsia3 = rawKlineData.filter(item => item.time >= asia3StartSec && item.time < asia3EndSec);
+    if (candlesAsia3.length > 0) {
+      let highAsia3 = -Infinity;
+      let lowAsia3 = Infinity;
+
+      candlesAsia3.forEach(c => {
+        if (c.high > highAsia3) highAsia3 = c.high;
+        if (c.low < lowAsia3) lowAsia3 = c.low;
+      });
+
+      const plAsia3High = targetSeries.createPriceLine({
+        price: highAsia3,
+        color: '#ef5350',
+        lineWidth: 2,
+        lineStyle: LightweightCharts.LineStyle.Solid,
+        axisLabelVisible: false,
+        title: '',
+      });
+      linesArray.push(plAsia3High);
+
+      const plAsia3Low = targetSeries.createPriceLine({
+        price: lowAsia3,
+        color: '#ef5350',
+        lineWidth: 2,
+        lineStyle: LightweightCharts.LineStyle.Solid,
+        axisLabelVisible: false,
+        title: '',
+      });
+      linesArray.push(plAsia3Low);
+    }
+  }
 }
 
 function updateAllPriceLines() {

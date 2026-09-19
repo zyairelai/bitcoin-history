@@ -62,6 +62,7 @@ function initEventListeners() {
     }
 
     renderChartData();
+    if (typeof updateEconomicOverlay === 'function') updateEconomicOverlay();
 
     // Force chart resize & sync range immediately
     setTimeout(() => {
@@ -97,6 +98,13 @@ function initEventListeners() {
     showAsia2 = e.target.checked;
     updateAllPriceLines();
   });
+
+  if (toggleAsia8_20Input) {
+    toggleAsia8_20Input.addEventListener('change', (e) => {
+      showAsia3 = e.target.checked;
+      updateAllPriceLines();
+    });
+  }
 
   if (toggleExtendInput) {
     toggleExtendInput.addEventListener('change', (e) => {
@@ -189,4 +197,5 @@ window.addEventListener('DOMContentLoaded', () => {
   initEventListeners();
   updateChartTypeBtnUI();
   fetchKlines();
+  fetchEconomicEvents();
 });

@@ -556,3 +556,114 @@ body, html {
   background-color: #252a37;
   color: #ffffff;
 }
+
+/* Top-Left Economic Calendar Overlay Widget */
+.eco-calendar-overlay {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  z-index: 30;
+  background: rgba(19, 23, 34, 0.88);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 8px 12px;
+  min-width: 240px;
+  max-width: 320px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  font-family: var(--font-family);
+  pointer-events: auto;
+  user-select: none;
+}
+
+.eco-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.eco-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #787b86;
+}
+
+.eco-dot.active {
+  background-color: #26a69a;
+  box-shadow: 0 0 6px #26a69a;
+}
+
+.eco-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #a3a6af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.eco-empty {
+  font-size: 11px;
+  color: #787b86;
+  font-style: italic;
+  padding: 2px 0;
+}
+
+.eco-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.eco-event-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  transition: background-color 0.15s;
+}
+
+.eco-event-item.eco-warning {
+  background: rgba(239, 83, 80, 0.15);
+  border: 1px solid rgba(239, 83, 80, 0.4);
+}
+
+.eco-event-time {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: #ffeb3b;
+  font-size: 11px;
+}
+
+.eco-event-item.eco-warning .eco-event-time {
+  color: #ef5350;
+}
+
+.eco-event-name {
+  flex: 1;
+  color: #ffffff;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.eco-event-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(41, 98, 255, 0.2);
+  color: #2962ff;
+}
+
+.eco-event-badge.eco-warning {
+  background: rgba(239, 83, 80, 0.25);
+  color: #ef5350;
+}
