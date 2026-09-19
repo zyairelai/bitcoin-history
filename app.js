@@ -62,6 +62,7 @@ function initEventListeners() {
     }
 
     renderChartData();
+
     if (typeof updateEconomicOverlay === 'function') updateEconomicOverlay();
 
     // Force chart resize & sync range immediately
@@ -98,6 +99,13 @@ function initEventListeners() {
     showAsia2 = e.target.checked;
     updateAllPriceLines();
   });
+
+  if (toggleSession15_20Input) {
+    toggleSession15_20Input.addEventListener('change', (e) => {
+      showSession15_20 = e.target.checked;
+      updateAllPriceLines();
+    });
+  }
 
   if (toggleAsia8_20Input) {
     toggleAsia8_20Input.addEventListener('change', (e) => {

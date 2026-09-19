@@ -116,8 +116,9 @@ function getPreviousWeekdayDateStr(dateStr) {
   return `${resY}-${resM}-${resD}`;
 }
 
-// EMA Calculation Function across entire historical window
+// EMA Calculation Function across historical dataset
 function calculateEMA(data, period) {
+  if (!data || data.length < period) return [];
   const emaData = [];
   const k = 2 / (period + 1);
   let prevEma = null;
@@ -139,6 +140,35 @@ function calculateEMA(data, period) {
     emaData.push({ time: data[i].time, value: prevEma });
   }
   return emaData;
+}
+
+// Aggregate 1-minute candles into custom N-minute interval candles (e.g., 3-minute)
+function aggregateKlines(candles, intervalMinutes) {
+  if (!candles || candles.length === 0 || intervalMinutes <= 1) return candles;
+  const bucketSec = intervalMinutes * 60;
+  const aggregated = [];
+  let currentBucket = null;
+
+  candles.forEach(c => {
+    const bucketTime = Math.floor(c.time / bucketSec) * bucketSec;
+    if (!currentBucket || currentBucket.time !== bucketTime) {
+      if (currentBucket) aggregated.push(currentBucket);
+      currentBucket = {
+        time: bucketTime,
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close
+      };
+    } else {
+      currentBucket.high = Math.max(currentBucket.high, c.high);
+      currentBucket.low = Math.min(currentBucket.low, c.low);
+      currentBucket.close = c.close;
+    }
+  });
+
+  if (currentBucket) aggregated.push(currentBucket);
+  return aggregated;
 }
 
 // Helper: Extract numeric UTC offset hours from string (e.g., "UTC+8" -> 8, "UTC-5" -> -5, "UTC" -> 0)

@@ -1,4 +1,4 @@
-// Fetch Binance Kline REST Data (UTC+8 timezone bounds)
+// Fetch Binance BTC Kline REST Data
 async function fetchKlines() {
   setLoading(true);
   if (ws) {
@@ -7,24 +7,8 @@ async function fetchKlines() {
   }
 
   try {
-    const [y, m, d] = selectedDate.split('-').map(Number);
-    const selectedDateObj = new Date(Date.UTC(y, m - 1, d));
-    const targetStartTime = Date.UTC(y, m - 1, d, 0, 0, 0) - (8 * 3600 * 1000);
-    
-    // Determine end time depending on daysMode
-    let rangeEndTimeMs = targetStartTime + (24 * 60 * 60 * 1000) - 1;
-    if (daysMode === '2D') {
-      // Start 1 day prior
-    } else if (daysMode === '3D') {
-      // Start 2 days prior
-    } else if (daysMode === '1W') {
-      // End on Friday of the week
-      const dayOfWeek = selectedDateObj.getUTCDay();
-      const daysUntilFriday = (5 - dayOfWeek + 7) % 7;
-      rangeEndTimeMs = targetStartTime + (daysUntilFriday * 24 * 3600 * 1000) + (24 * 3600 * 1000) - 1;
-    }
-
-    const targetEndTime = rangeEndTimeMs;
+    const { startSec: displayStartSec, endSec: displayEndSec } = calculateDisplayTimeBounds(selectedDate, daysMode, false);
+    const targetEndTime = displayEndSec * 1000;
 
     let intervalMinutes = 5;
     if (currentInterval === '1m') intervalMinutes = 1;
@@ -33,9 +17,9 @@ async function fetchKlines() {
     else if (currentInterval === '15m') intervalMinutes = 15;
     else if (currentInterval === '1h') intervalMinutes = 60;
 
-    // Fetch lookback: include extra 10 days for week view & EMA calculation buffer
-    const fetchLookbackMs = (10 * 24 * 60 * 60 * 1000) + (250 * intervalMinutes * 60 * 1000);
-    const fullFetchStart = targetStartTime - fetchLookbackMs;
+    // Fetch lookback: 350 candles before display start to ensure 200 EMA is fully computed at startSec
+    const lookbackSec = 350 * intervalMinutes * 60;
+    const fullFetchStart = (displayStartSec - lookbackSec) * 1000;
 
     rawKlineData = [];
     let currentFetchStart = fullFetchStart;
@@ -58,7 +42,9 @@ async function fetchKlines() {
         const low = parseFloat(item[3]);
         const close = parseFloat(item[4]);
 
-        rawKlineData.push({ time, open, high, low, close });
+        if (rawKlineData.length === 0 || rawKlineData[rawKlineData.length - 1].time < time) {
+          rawKlineData.push({ time, open, high, low, close });
+        }
       });
 
       const lastCloseTime = rawData[rawData.length - 1][6];
@@ -68,16 +54,13 @@ async function fetchKlines() {
       currentFetchStart = lastCloseTime + 1;
     }
 
-    // Preserve visible range across timeframe change
-    const visibleRangeTop = chartTop ? chartTop.timeScale().getVisibleLogicalRange() : null;
-
     renderChartData();
 
     if (chartTop) chartTop.timeScale().fitContent();
     if (chartBottom && isDualLayout) chartBottom.timeScale().fitContent();
 
     if (statusDot) statusDot.className = 'status-dot online';
-    if (statusText) statusText.textContent = `Historical Data Loaded (${selectedDate} ${currentInterval} UTC+8)`;
+    if (statusText) statusText.textContent = `Data Loaded (${selectedDate} ${currentInterval} UTC+8)`;
 
   } catch (err) {
     console.error(err);

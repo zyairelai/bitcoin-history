@@ -81,7 +81,7 @@ function initCharts() {
   ema50Top = chartTop.addLineSeries({ color: '#ff9800', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
   ema200Top = chartTop.addLineSeries({ color: '#e91e63', lineWidth: 3.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
 
-  // Top Chart Candlestick Series
+  // Top Chart Candlestick Series (NAS100 / BTC)
   seriesTop = chartTop.addCandlestickSeries({
     upColor: '#26a69a',
     downColor: '#ef5350',
@@ -92,8 +92,8 @@ function initCharts() {
     priceLineVisible: false,
     priceFormat: {
       type: 'price',
-      precision: 0,
-      minMove: 1,
+      precision: 2,
+      minMove: 0.01,
     },
   });
 
@@ -269,47 +269,40 @@ function calculateDisplayTimeBounds(selectedDateStr, mode, sessionOnly) {
   const [y, m, d] = selectedDateStr.split('-').map(Number);
   const selectedDateObj = new Date(Date.UTC(y, m - 1, d));
   const targetDayStartSec = Math.floor(Date.UTC(y, m - 1, d, 0, 0, 0) / 1000) - (8 * 3600); // 00:00 UTC+8 in Unix sec
-  const targetDayEndSec = targetDayStartSec + (24 * 3600) - 1; // 23:59:59 UTC+8
+  const targetDayEndSec = targetDayStartSec + (29 * 3600) - 1; // 04:59:59 UTC+8 next morning (05:00 AM next day)
 
-  if (sessionOnly) {
-    // If Session checkbox is checked, focus on selected date 05:00 to 23:59:59 UTC+8
+  if (mode === '1D' || sessionOnly) {
+    // 05:00 UTC+8 today to 05:00 UTC+8 next morning (e.g. Fri 05:00 AM to Sat 05:00 AM)
     const startSec = targetDayStartSec + (5 * 3600);
-    const endSec = targetDayStartSec + (24 * 3600) - 1;
+    const endSec = targetDayStartSec + (29 * 3600) - 1;
     return { startSec, endSec };
   }
 
-  if (mode === '1D') {
-    return { startSec: targetDayStartSec, endSec: targetDayEndSec };
-  }
-
   if (mode === '2D') {
-    // Current day + 1 previous calendar day
-    const startSec = targetDayStartSec - (24 * 3600);
+    // Current day + 1 previous calendar day starting 05:00
+    const startSec = targetDayStartSec - (24 * 3600) + (5 * 3600);
     return { startSec, endSec: targetDayEndSec };
   }
 
   if (mode === '3D') {
-    // Current day + 2 previous calendar days
-    // If Monday selected, 3D includes Sun (1 day back) and Sat (2 days back)
-    const startSec = targetDayStartSec - (2 * 24 * 3600);
+    // Current day + 2 previous calendar days starting 05:00
+    const startSec = targetDayStartSec - (2 * 24 * 3600) + (5 * 3600);
     return { startSec, endSec: targetDayEndSec };
   }
 
   if (mode === '1W') {
-    // Current week: previous Saturday all the way to current week's Friday 23:59:59
+    // Current week: previous Saturday 05:00 to current week's Friday 05:00 next morning
     const dayOfWeek = selectedDateObj.getUTCDay(); // 0:Sun, 1:Mon, 2:Tue, 3:Wed, 4:Thu, 5:Fri, 6:Sat
-    // Find Friday of current selected date's week
     const daysUntilFriday = (5 - dayOfWeek + 7) % 7;
     const weekFridayStartSec = targetDayStartSec + (daysUntilFriday * 24 * 3600);
-    const weekFridayEndSec = weekFridayStartSec + (24 * 3600) - 1;
+    const weekFridayEndSec = weekFridayStartSec + (29 * 3600) - 1;
 
-    // Previous Saturday is 6 days prior to Friday (Friday - 6 days)
-    const prevSatStartSec = weekFridayStartSec - (6 * 24 * 3600);
+    const prevSatStartSec = weekFridayStartSec - (6 * 24 * 3600) + (5 * 3600);
 
     return { startSec: prevSatStartSec, endSec: weekFridayEndSec };
   }
 
-  return { startSec: targetDayStartSec, endSec: targetDayEndSec };
+  return { startSec: targetDayStartSec + (5 * 3600), endSec: targetDayEndSec };
 }
 
 // Render Chart Data on Both Top and Bottom Charts
@@ -318,33 +311,51 @@ function renderChartData() {
 
   const { startSec, endSec } = calculateDisplayTimeBounds(selectedDate, daysMode, showSession);
 
-  const activeRawData = rawKlineData.filter(item => item.time >= startSec && item.time <= endSec);
-  const rawHACandles = convertToHeikinAshi(activeRawData);
+  const badgeTop = document.getElementById('badge-top');
+  const badgeBottom = document.getElementById('badge-bottom');
+
+  if (badgeTop) badgeTop.textContent = 'BTCUSDT (Binance)';
+  if (badgeBottom) badgeBottom.textContent = 'BTCUSDT (Binance)';
+
+  // Visible candle subset
+  const activeData = rawKlineData.filter(item => item.time >= startSec && item.time <= endSec);
+  const haCandles = convertToHeikinAshi(activeData);
 
   if (isDualLayout) {
-    seriesTop.setData(isHeikinAshi ? activeRawData : rawHACandles);
-    seriesBottom.setData(isHeikinAshi ? rawHACandles : activeRawData);
+    // Top chart: Raw Candlesticks, Bottom chart: Heikin-Ashi
+    seriesTop.setData(activeData);
+    seriesBottom.setData(haCandles);
   } else {
-    seriesTop.setData(isHeikinAshi ? rawHACandles : activeRawData);
+    // Single chart: Dynamic based on isHeikinAshi toggle
+    seriesTop.setData(isHeikinAshi ? haCandles : activeData);
   }
 
-  // Calculate EMAs across full historical window, then slice strictly to visible week window [startSec, endSec]
-  const fullEma10 = calculateEMA(rawKlineData, 10).filter(item => item.time >= startSec && item.time <= endSec);
-  const fullEma20 = calculateEMA(rawKlineData, 20).filter(item => item.time >= startSec && item.time <= endSec);
-  const fullEma50 = calculateEMA(rawKlineData, 50).filter(item => item.time >= startSec && item.time <= endSec);
-  const fullEma200 = calculateEMA(rawKlineData, 200).filter(item => item.time >= startSec && item.time <= endSec);
+  // Fast lookup sets for valid timestamps
+  const validTimes = new Set(activeData.map(d => d.time));
 
-  ema10Top.setData(fullEma10);
-  ema20Top.setData(fullEma20);
-  ema50Top.setData(fullEma50);
-  ema200Top.setData(fullEma200);
+  // Calculate EMAs across full historical dataset
+  const ema10 = calculateEMA(rawKlineData, 10).filter(item => validTimes.has(item.time));
+  const ema20 = calculateEMA(rawKlineData, 20).filter(item => validTimes.has(item.time));
+  const ema50 = calculateEMA(rawKlineData, 50).filter(item => validTimes.has(item.time));
+  const ema200 = calculateEMA(rawKlineData, 200).filter(item => validTimes.has(item.time));
 
-  ema10Bottom.setData(fullEma10);
-  ema20Bottom.setData(fullEma20);
-  ema50Bottom.setData(fullEma50);
-  ema200Bottom.setData(fullEma200);
+  ema10Top.setData(ema10);
+  ema20Top.setData(ema20);
+  ema50Top.setData(ema50);
+  ema200Top.setData(ema200);
+
+  if (isDualLayout) {
+    ema10Bottom.setData(ema10);
+    ema20Bottom.setData(ema20);
+    ema50Bottom.setData(ema50);
+    ema200Bottom.setData(ema200);
+  }
 
   updateAllPriceLines();
+
+  // Fit scale edge-to-edge without extra blank space
+  if (chartTop) chartTop.timeScale().fitContent();
+  if (chartBottom && isDualLayout) chartBottom.timeScale().fitContent();
 
   // Update Stepper Button Disabled States
   datePrevBtn.disabled = !getAdjacentWeekday(selectedDate, -1);

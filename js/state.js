@@ -40,6 +40,7 @@ let showPDHLM = true;
 let showFibb = false;
 let showAsia1 = false;
 let showAsia2 = false;
+let showSession15_20 = false;
 let showAsia3 = false;
 let showExtend = false;
 let showExtendFibb = false;
@@ -50,6 +51,8 @@ let showNYGroup = false;
 
 // Synchronizing flag to prevent circular range updates
 let isSyncingRange = false;
+
+
 
 // Calendar Modal State
 let currentCalYear = new Date().getFullYear();
@@ -80,6 +83,7 @@ const togglePDHLMInput = document.getElementById('toggle-pdhlm');
 const toggle25_75Input = document.getElementById('toggle-25-75');
 const toggleAsia8_12Input = document.getElementById('toggle-asia-8-12');
 const toggleAsia8_14Input = document.getElementById('toggle-asia-8-14');
+const toggleSession15_20Input = document.getElementById('toggle-session-15-20');
 const toggleAsia8_20Input = document.getElementById('toggle-asia-8-20');
 const toggleExtendInput = document.getElementById('toggle-extend');
 const toggleExtendFibbInput = document.getElementById('toggle-extend-fibb');

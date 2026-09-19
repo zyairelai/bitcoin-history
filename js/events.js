@@ -69,21 +69,63 @@ async function fetchEconomicEvents() {
   updateEconomicOverlay();
 }
 
+// US Full-Day Market Holiday Helper
+function getUSMarketHoliday(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dateObj = new Date(Date.UTC(y, m - 1, d));
+  const dayOfWeek = dateObj.getUTCDay(); // 0: Sun, 1: Mon, ..., 6: Sat
+
+  // 1. New Year's Day (Jan 1)
+  if (m === 1 && d === 1) return "New Year's Day (Full Market Closure)";
+
+  // 2. MLK Day (3rd Mon in Jan)
+  if (m === 1 && dayOfWeek === 1 && d >= 15 && d <= 21) return "MLK Jr. Day (Full Market Closure)";
+
+  // 3. Presidents' Day (3rd Mon in Feb)
+  if (m === 2 && dayOfWeek === 1 && d >= 15 && d <= 21) return "Presidents' Day (Full Market Closure)";
+
+  // 4. Juneteenth (Jun 19)
+  if (m === 6 && d === 19) return "Juneteenth (Full Market Closure)";
+
+  // 5. Independence Day (Jul 4)
+  if (m === 7 && d === 4) return "Independence Day (Full Market Closure)";
+
+  // 6. Labor Day (1st Mon in Sep)
+  if (m === 9 && dayOfWeek === 1 && d <= 7) return "Labor Day (Full Market Closure)";
+
+  // 7. Thanksgiving Day (4th Thu in Nov)
+  if (m === 11 && dayOfWeek === 4 && d >= 22 && d <= 28) return "Thanksgiving Day (Full Market Closure)";
+
+  // 8. Christmas Day (Dec 25)
+  if (m === 12 && d === 25) return "Christmas Day (Full Market Closure)";
+
+  return null;
+}
+
 /**
  * Filter & sort major US high-impact economic events for a given YYYY-MM-DD selectedDate
  */
 function getEventsForDate(dateStr) {
   const highImpactKeywords = [
     { key: 'FOMC', label: 'FOMC Rate Decision & Press Conf', isWarning: true },
+    { key: 'POWELL', label: 'Fed Chair Powell Speech', isWarning: true },
+    { key: 'FED RATE', label: 'Fed Interest Rate Decision', isWarning: true },
+
     { key: 'CPI', label: 'CPI Inflation Data', isWarning: false },
+    { key: 'PPI', label: 'PPI Producer Price Index', isWarning: false },
+    { key: 'PCE', label: 'Core PCE Price Index (Fed Preferred)', isWarning: false },
+
     { key: 'NFP', label: 'Non-Farm Payrolls (NFP)', isWarning: false },
     { key: 'PAYROLL', label: 'Non-Farm Payrolls (NFP)', isWarning: false },
+    { key: 'ADP', label: 'ADP Employment (Small NFP)', isWarning: false },
     { key: 'UNEMPLOYMENT', label: 'Unemployment Rate / Claims', isWarning: false },
     { key: 'CLAIMS', label: 'Initial Unemployment Claims', isWarning: false },
-    { key: 'PPI', label: 'PPI Producer Price Index', isWarning: false },
-    { key: 'PCE', label: 'Core PCE Price Index', isWarning: false },
-    { key: 'POWELL', label: 'Fed Chair Powell Speech', isWarning: true },
-    { key: 'FED', label: 'Federal Reserve Event', isWarning: true }
+    { key: 'JOBLESS', label: 'Initial Unemployment Claims', isWarning: false },
+
+    { key: 'GDP', label: 'GDP Growth Rate (Quarterly)', isWarning: false },
+    { key: 'ISM', label: 'ISM Manufacturing / Services PMI', isWarning: false },
+    { key: 'PMI', label: 'ISM Manufacturing / Services PMI', isWarning: false },
+    { key: 'RETAIL SALES', label: 'Retail Sales Data', isWarning: false }
   ];
 
   const matchedEvents = [];
@@ -182,9 +224,21 @@ function updateEconomicOverlay() {
     ecoWidget.style.display = 'block';
   }
 
+  const holidayName = getUSMarketHoliday(selectedDate);
   const events = getEventsForDate(selectedDate);
 
-  if (events.length === 0) {
+  let holidayBannerHtml = '';
+  if (holidayName) {
+    holidayBannerHtml = `
+      <div class="eco-event-item eco-warning" style="background: rgba(239, 83, 80, 0.2); border-left: 3px solid #ef5350; margin-bottom: 6px;">
+        <span class="eco-event-time">ALL DAY</span>
+        <span class="eco-event-name" style="color: #ff8a80; font-weight: 700;">🏖️ ${holidayName}</span>
+        <span class="eco-event-badge eco-warning">HOLIDAY</span>
+      </div>
+    `;
+  }
+
+  if (events.length === 0 && !holidayName) {
     ecoWidget.innerHTML = `
       <div class="eco-header">
         <span class="eco-dot"></span>
@@ -213,6 +267,7 @@ function updateEconomicOverlay() {
       <span class="eco-title">US High-Impact Calendar (${selectedDate})</span>
     </div>
     <div class="eco-events-list">
+      ${holidayBannerHtml}
       ${eventsHtml}
     </div>
   `;

@@ -244,36 +244,7 @@ body, html {
   color: #ffffff;
 }
 
-/* Playback Control Button */
-.playback-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background-color: #1e222d;
-  border: 1px solid var(--header-border);
-  color: var(--text-main);
-  font-family: var(--font-family);
-  font-size: 12px;
-  font-weight: 700;
-  padding: 0 10px;
-  height: 28px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: color 0.15s, background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
-  user-select: none;
-}
 
-.playback-btn:hover {
-  background-color: #252a37;
-  color: #ffffff;
-}
-
-.playback-btn.active {
-  background-color: rgba(41, 98, 255, 0.15);
-  border-color: var(--blue-active);
-  color: #2962ff;
-  box-shadow: 0 0 8px rgba(41, 98, 255, 0.3);
-}
 
 .btn {
   font-family: var(--font-family);
@@ -450,6 +421,25 @@ body, html {
   flex: 1;
   min-height: 0;
   border-bottom: 1px solid var(--header-border);
+}
+
+.chart-badge {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  z-index: 5;
+  background-color: rgba(30, 34, 45, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  font-family: var(--font-family);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  pointer-events: none;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(4px);
+  user-select: none;
 }
 
 .chart-panel.hidden {

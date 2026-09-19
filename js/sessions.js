@@ -1,5 +1,5 @@
 // Draw ultra-thin crisp 1px vertical session lines AND session color boxes on a specific overlay canvas
-function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
+function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries, dataSource = rawKlineData) {
   if (!targetCanvas || !targetCtx || !targetChart || !targetSeries) return;
 
   const container = targetCanvas.parentElement;
@@ -11,10 +11,10 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
   targetCtx.scale(dpr, dpr);
   targetCtx.clearRect(0, 0, container.clientWidth, container.clientHeight);
 
-  if (!rawKlineData || rawKlineData.length === 0) return;
+  if (!dataSource || dataSource.length === 0) return;
 
   const { startSec, endSec } = calculateDisplayTimeBounds(selectedDate, daysMode, showSession);
-  const candlesInRange = rawKlineData.filter(item => item.time >= startSec && item.time <= endSec);
+  const candlesInRange = dataSource.filter(item => item.time >= startSec && item.time <= endSec);
   if (candlesInRange.length === 0) return;
 
   // Determine all 00:00 UTC+8 day start seconds within [startSec, endSec]
@@ -56,7 +56,7 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
       targetCtx.restore();
     }
 
-    const dayCandles = rawKlineData.filter(item => item.time >= dayStartSec && item.time <= dayStartSec + 24 * 3600 - 1);
+    const dayCandles = dataSource.filter(item => item.time >= dayStartSec && item.time <= dayStartSec + 24 * 3600 - 1);
     if (dayCandles.length === 0) return;
 
     // Skip highlighting session boxes for weekends (Saturday=6, Sunday=0)
@@ -70,18 +70,20 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
     // Draw Colored Session Shading Boxes with High/Low Bounds & Label
     const sessionBoxConfigs = [];
 
-    // ADE Macro Boxing: Asia (08:00 - 14:00), London (15:00 - 19:00), NewYork (20:00 - 23:45)
+    // ADE Macro Boxing: Asia (08:00 - 12:00), London (15:00 - 19:00), NewYork (20:30 - 23:30)
     if (showADE) {
       sessionBoxConfigs.push({
         title: 'Asia',
+        isAde: true,
         startOffsetSec: 8 * 3600,                       // 08:00 UTC+8
-        endOffsetSec: (14 + ukShift) * 3600,             // 14:00 (Summer) or 15:00 (Winter) UTC+8
+        endOffsetSec: 12 * 3600,                        // 12:00 UTC+8
         fillColor: 'rgba(239, 83, 80, 0.15)',            // Red Shading
         borderColor: 'rgba(239, 83, 80, 0.4)',
         textColor: '#ef5350',
       });
       sessionBoxConfigs.push({
         title: 'London',
+        isAde: true,
         startOffsetSec: (15 + ukShift) * 3600,           // 15:00 (Summer) or 16:00 (Winter) UTC+8
         endOffsetSec: (19 + ukShift) * 3600,             // 19:00 (Summer) or 20:00 (Winter) UTC+8
         fillColor: 'rgba(76, 175, 80, 0.15)',            // Green Shading
@@ -90,24 +92,17 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
       });
       sessionBoxConfigs.push({
         title: 'NewYork',
-        startOffsetSec: (20 + usShift) * 3600,           // 20:00 (Summer) or 21:00 (Winter) UTC+8
-        endOffsetSec: (23 + usShift) * 3600 + 2700,      // 23:45 (Summer) or 00:45 (Winter) UTC+8
+        isAde: true,
+        startOffsetSec: (20 + usShift) * 3600 + 1800,    // 20:30 (Summer) or 21:30 (Winter) UTC+8
+        endOffsetSec: (23 + usShift) * 3600 + 1800,      // 23:30 (Summer) or 00:30 (Winter) UTC+8
         fillColor: 'rgba(255, 235, 59, 0.15)',           // Yellow Shading
         borderColor: 'rgba(255, 235, 59, 0.4)',
         textColor: '#ffeb3b',
       });
     }
 
-    // London Sub-Sessions Group (Frankfurt, London, NQ)
+    // London Sub-Sessions Group (London, NQ)
     if (showLondonGroup) {
-      sessionBoxConfigs.push({
-        title: 'Frankfurt',
-        startOffsetSec: (12 + ukShift) * 3600,              // 12:00 UTC+8
-        endOffsetSec: (14 + ukShift) * 3600 + 1800,         // 14:30 UTC+8
-        fillColor: 'rgba(255, 179, 0, 0.15)',   // Amber Gold
-        borderColor: 'rgba(255, 179, 0, 0.4)',
-        textColor: '#ffb300',
-      });
       sessionBoxConfigs.push({
         title: 'London',
         startOffsetSec: (15 + ukShift) * 3600,              // 15:00 UTC+8
@@ -119,7 +114,7 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
       sessionBoxConfigs.push({
         title: 'NQ',
         startOffsetSec: (17 + usShift) * 3600 + 1800,        // 17:30 UTC+8
-        endOffsetSec: (19 + usShift) * 3600,               // 19:00 UTC+8
+        endOffsetSec: (19 + ukShift) * 3600,               // 19:00 UTC+8
         fillColor: 'rgba(239, 83, 80, 0.15)',   // Red / Coral
         borderColor: 'rgba(239, 83, 80, 0.4)',
         textColor: '#ef5350',
@@ -150,7 +145,7 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
       const sessionStartSec = dayStartSec + config.startOffsetSec;
       const sessionEndSec = dayStartSec + config.endOffsetSec;
 
-      const sessionCandles = rawKlineData.filter(c => c.time >= sessionStartSec && c.time <= sessionEndSec);
+      const sessionCandles = dataSource.filter(c => c.time >= sessionStartSec && c.time <= sessionEndSec);
       if (sessionCandles.length === 0) return;
 
       let sHigh = -Infinity;
@@ -205,16 +200,24 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
           targetCtx.lineWidth = 1;
           targetCtx.strokeRect(left, top, width, height);
 
-          // Calculate price range (High - Low) rounded to integer
-          const rangeDiff = Math.round(sHigh - sLow);
-          const labelText = `${config.title} · ${rangeDiff}u`;
+          // Hide ADE label text for London/NewYork when overlapping sub-session groups are active (Asia label remains visible)
+          const isAdeLabelHidden = config.isAde && (
+            (showLondonGroup && config.title === 'London') ||
+            (showNYGroup && config.title === 'NewYork')
+          );
 
-          // Label text below box (bottom center)
-          targetCtx.fillStyle = config.textColor;
-          targetCtx.font = '600 12px Inter, sans-serif';
-          targetCtx.textAlign = 'center';
-          targetCtx.textBaseline = 'top';
-          targetCtx.fillText(labelText, left + (width / 2), bottom + 6);
+          if (!isAdeLabelHidden) {
+            // Calculate price range (High - Low) rounded to 1 decimal for NQ/BTC
+            const rangeDiff = (sHigh - sLow).toFixed(1);
+            const labelText = `${config.title} · ${rangeDiff}`;
+
+            // Label text below box (bottom center)
+            targetCtx.fillStyle = config.textColor;
+            targetCtx.font = '600 12px Inter, sans-serif';
+            targetCtx.textAlign = 'center';
+            targetCtx.textBaseline = 'top';
+            targetCtx.fillText(labelText, left + (width / 2), bottom + 6);
+          }
         }
       }
     });
@@ -222,8 +225,8 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries) {
 }
 
 function updateAllSessionCanvases() {
-  drawOverlayCanvas(canvasTop, ctxTop, chartTop, seriesTop);
+  drawOverlayCanvas(canvasTop, ctxTop, chartTop, seriesTop, rawKlineData);
   if (isDualLayout) {
-    drawOverlayCanvas(canvasBottom, ctxBottom, chartBottom, seriesBottom);
+    drawOverlayCanvas(canvasBottom, ctxBottom, chartBottom, seriesBottom, rawKlineData);
   }
 }

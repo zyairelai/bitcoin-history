@@ -1,12 +1,19 @@
-// Keyboard Arrow Navigation (< and > arrow keys shift chart by 1 candle in current timeframe)
+// Keyboard Arrow Navigation (Arrow keys / Comma / Period shift chart visible range)
 function handleChartArrowStep(e) {
-  // Ignore if user is typing in an input element
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
 
-  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || e.code === 'ArrowRight' || e.code === 'ArrowLeft') {
+  const key = e.key;
+  const code = e.code;
+
+  if (
+    key === 'ArrowRight' || key === 'ArrowLeft' ||
+    code === 'ArrowRight' || code === 'ArrowLeft' ||
+    key === '<' || key === '>' ||
+    key === ',' || key === '.'
+  ) {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === 'keyup') return; // Only process on keydown
+    if (e.type === 'keyup') return;
 
     const targetChart = chartTop || chartBottom;
     if (!targetChart) return;
@@ -14,7 +21,7 @@ function handleChartArrowStep(e) {
     const currentRange = targetChart.timeScale().getVisibleLogicalRange();
     if (!currentRange) return;
 
-    const step = (e.key === 'ArrowRight' || e.code === 'ArrowRight') ? 1 : -1;
+    const step = (key === 'ArrowRight' || code === 'ArrowRight' || key === '>' || key === '.') ? 1 : -1;
     const newRange = {
       from: currentRange.from + step,
       to: currentRange.to + step
@@ -27,5 +34,4 @@ function handleChartArrowStep(e) {
 
 function initPlaybackListeners() {
   window.addEventListener('keydown', handleChartArrowStep, true);
-  window.addEventListener('keyup', handleChartArrowStep, true);
 }

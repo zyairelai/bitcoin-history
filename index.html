@@ -8,6 +8,10 @@
   <meta name="description"
     content="Professional lightweight candlestick trading chart for BTCUSDT using Binance Kline API and TradingView Lightweight Charts.">
 
+  <!-- Favicon -->
+  <link rel="icon" href="https://www.bitcoin.com/favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="https://www.bitcoin.com/favicon.ico" type="image/x-icon">
+
   <!-- Google Fonts & Lightweight Charts CDN -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -141,9 +145,13 @@
           <input type="checkbox" id="toggle-asia-8-12" hidden>
           <span>0800-1200</span>
         </label>
-        <label class="toggle-btn" title="Enable/Disable 08:00-14:00 UTC+8 Asia Session High & Low solid red lines">
+        <label class="toggle-btn" title="Enable/Disable 08:00-14:00 UTC+8 Session High & Low solid red lines">
           <input type="checkbox" id="toggle-asia-8-14" hidden>
           <span>0800-1400</span>
+        </label>
+        <label class="toggle-btn" title="Enable/Disable 15:00-20:00 UTC+8 Session High & Low solid red lines">
+          <input type="checkbox" id="toggle-session-15-20" hidden>
+          <span>1500-2000</span>
         </label>
         <label class="toggle-btn" title="Enable/Disable 08:00-20:00 UTC+8 Day Session High & Low solid red lines">
           <input type="checkbox" id="toggle-asia-8-20" hidden>
@@ -155,14 +163,16 @@
 
     <!-- Main Chart Section (Single or Split Dual Chart View) -->
     <main class="chart-section" id="chart-section">
-      <!-- Top Chart Panel (Raw Candlesticks) -->
+      <!-- Top Chart Panel -->
       <div class="chart-panel" id="panel-top">
+        <div id="badge-top" class="chart-badge">BTCUSDT (Binance)</div>
         <div id="chart-container-top" class="chart-container"></div>
         <canvas id="session-canvas-top" class="session-canvas"></canvas>
       </div>
 
-      <!-- Bottom Chart Panel (Heikin-Ashi) - Hidden in single layout mode -->
+      <!-- Bottom Chart Panel - Hidden in single layout mode -->
       <div class="chart-panel hidden" id="panel-bottom">
+        <div id="badge-bottom" class="chart-badge">BTCUSDT (Binance)</div>
         <div id="chart-container-bottom" class="chart-container"></div>
         <canvas id="session-canvas-bottom" class="session-canvas"></canvas>
       </div>
