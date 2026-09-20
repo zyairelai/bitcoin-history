@@ -16,6 +16,7 @@ async function fetchKlines() {
     else if (currentInterval === '5m') intervalMinutes = 5;
     else if (currentInterval === '15m') intervalMinutes = 15;
     else if (currentInterval === '1h') intervalMinutes = 60;
+    else if (currentInterval === '4h') intervalMinutes = 240;
 
     // Fetch lookback: 350 candles before display start to ensure 200 EMA is fully computed at startSec
     const lookbackSec = 350 * intervalMinutes * 60;
