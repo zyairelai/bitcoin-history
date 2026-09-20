@@ -37,6 +37,7 @@ let daysMode = '1W';
 let selectedTimezone = 'UTC+8';
 
 // Level Toggles State (Default FALSE except showPDHLM)
+let showPW = false;
 let showPDHLM = true;
 let showFibb = false;
 let showAsia1 = false;
@@ -78,6 +79,7 @@ const loadingOverlay = document.getElementById('loading-overlay');
 const timezoneSelect = document.getElementById('timezone-select');
 
 // Checkbox Toggles
+const togglePWInput = document.getElementById('toggle-pw');
 const togglePDHLMInput = document.getElementById('toggle-pdhlm');
 const toggle25_75Input = document.getElementById('toggle-25-75');
 const toggleAsia8_12Input = document.getElementById('toggle-asia-8-12');

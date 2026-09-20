@@ -18,8 +18,9 @@ async function fetchKlines() {
     else if (currentInterval === '1h') intervalMinutes = 60;
     else if (currentInterval === '4h') intervalMinutes = 240;
 
-    // Fetch lookback: 350 candles before display start to ensure 200 EMA is fully computed at startSec
-    const lookbackSec = 350 * intervalMinutes * 60;
+    // Fetch lookback: 350 candles or 14 days before display start to ensure 200 EMA & Previous Week (PW) are fully available
+    const pwLookbackSec = 14 * 86400;
+    const lookbackSec = Math.max(350 * intervalMinutes * 60, pwLookbackSec);
     const fullFetchStart = (displayStartSec - lookbackSec) * 1000;
 
     rawKlineData = [];

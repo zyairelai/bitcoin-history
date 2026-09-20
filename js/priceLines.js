@@ -22,6 +22,45 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
   const selectedDateObj = new Date(Date.UTC(y, m - 1, d));
   const isMonday = selectedDateObj.getUTCDay() === 1;
 
+  // Compute & Draw PW (Previous Week) High & Low solid purple lines
+  if (showPW) {
+    const dayOfWeek = selectedDateObj.getUTCDay(); // 0:Sun, 1:Mon, 2:Tue...
+    const diffToMon = (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+    const currentWeekMonUtcSec = targetUtcStartSec - (diffToMon * 86400);
+    const prevWeekStartUtcSec = currentWeekMonUtcSec - (7 * 86400);
+    const prevWeekEndUtcSec = currentWeekMonUtcSec - 1;
+
+    const prevWeekCandles = dataSource.filter(item => item.time >= prevWeekStartUtcSec && item.time <= prevWeekEndUtcSec);
+
+    if (prevWeekCandles.length > 0) {
+      let pwHigh = -Infinity;
+      let pwLow = Infinity;
+
+      prevWeekCandles.forEach(c => {
+        if (c.high > pwHigh) pwHigh = c.high;
+        if (c.low < pwLow) pwLow = c.low;
+      });
+
+      const pwSpecs = [
+        { price: pwHigh, color: '#ab47bc', lineStyle: LightweightCharts.LineStyle.Solid, lineWidth: 2 },
+        { price: pwLow,  color: '#ab47bc', lineStyle: LightweightCharts.LineStyle.Solid, lineWidth: 2 },
+      ];
+
+      pwSpecs.forEach(spec => {
+        const pl = targetSeries.createPriceLine({
+          price: spec.price,
+          color: spec.color,
+          lineWidth: spec.lineWidth,
+          lineStyle: spec.lineStyle,
+          axisLabelVisible: false,
+          title: '',
+        });
+        linesArray.push(pl);
+        activePriceLines.push(spec.price);
+      });
+    }
+  }
+
   let prevDayCandles = [];
 
   if (isMonday) {
