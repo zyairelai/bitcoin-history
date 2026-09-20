@@ -120,6 +120,13 @@ function initEventListeners() {
     });
   }
 
+  if (toggleSession2000_0400Input) {
+    toggleSession2000_0400Input.addEventListener('change', (e) => {
+      showSession2000_0400 = e.target.checked;
+      updateAllPriceLines();
+    });
+  }
+
   if (toggleExtendInput) {
     toggleExtendInput.addEventListener('change', (e) => {
       showExtend = e.target.checked;

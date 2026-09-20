@@ -285,6 +285,43 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
       linesArray.push(plAsia3Low);
     }
   }
+
+  // Session 2000-0400 (20:00 UTC+8 previous day to 04:00 UTC+8 selected day) Solid Green Lines
+  if (showSession2000_0400) {
+    const start2000_0400 = targetDayStartSec - (4 * 3600); // 20:00 UTC+8 previous day
+    const end2000_0400 = targetDayStartSec + (4 * 3600);   // 04:00 UTC+8 selected day
+
+    const candles2000_0400 = dataSource.filter(item => item.time >= start2000_0400 && item.time < end2000_0400);
+    if (candles2000_0400.length > 0) {
+      let high2000_0400 = -Infinity;
+      let low2000_0400 = Infinity;
+
+      candles2000_0400.forEach(c => {
+        if (c.high > high2000_0400) high2000_0400 = c.high;
+        if (c.low < low2000_0400) low2000_0400 = c.low;
+      });
+
+      const pl2000_0400High = targetSeries.createPriceLine({
+        price: high2000_0400,
+        color: '#26a69a',
+        lineWidth: 2,
+        lineStyle: LightweightCharts.LineStyle.Solid,
+        axisLabelVisible: false,
+        title: '',
+      });
+      linesArray.push(pl2000_0400High);
+
+      const pl2000_0400Low = targetSeries.createPriceLine({
+        price: low2000_0400,
+        color: '#26a69a',
+        lineWidth: 2,
+        lineStyle: LightweightCharts.LineStyle.Solid,
+        axisLabelVisible: false,
+        title: '',
+      });
+      linesArray.push(pl2000_0400Low);
+    }
+  }
 }
 
 function updateAllPriceLines() {
