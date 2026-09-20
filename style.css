@@ -657,3 +657,62 @@ body, html {
   background: rgba(239, 83, 80, 0.25);
   color: #ef5350;
 }
+
+/* Copy Toast Stack Container & Items */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.toast-item {
+  background-color: #388e3c;
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-family: var(--font-family);
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.toast-item.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast-number {
+  color: #ff5252;
+  font-weight: 800;
+}
+
+.toast-icon {
+  width: 22px;
+  height: 22px;
+  background-color: #ffffff;
+  color: #388e3c;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+

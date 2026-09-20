@@ -79,6 +79,7 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
           title: '',
         });
         linesArray.push(pl);
+        activePriceLines.push(spec.price);
       }
     });
 
@@ -97,6 +98,7 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
         title: '',
       });
       linesArray.push(plAbove);
+      activePriceLines.push(extendAbove);
 
       const plBelow = targetSeries.createPriceLine({
         price: extendBelow,
@@ -107,6 +109,7 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
         title: '',
       });
       linesArray.push(plBelow);
+      activePriceLines.push(extendBelow);
     }
 
     if (showExtendFibb) {
@@ -124,6 +127,7 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
         title: '',
       });
       linesArray.push(plAbove);
+      activePriceLines.push(extendFibbAbove);
 
       const plBelow = targetSeries.createPriceLine({
         price: extendFibbBelow,
@@ -134,6 +138,7 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
         title: '',
       });
       linesArray.push(plBelow);
+      activePriceLines.push(extendFibbBelow);
     }
   }
 
@@ -161,6 +166,7 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
         title: '',
       });
       linesArray.push(plAsia1High);
+      activePriceLines.push(highAsia1);
 
       const plAsia1Low = targetSeries.createPriceLine({
         price: lowAsia1,
@@ -171,6 +177,7 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
         title: '',
       });
       linesArray.push(plAsia1Low);
+      activePriceLines.push(lowAsia1);
     }
   }
 
@@ -199,6 +206,7 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
         title: '',
       });
       linesArray.push(plAsia2High);
+      activePriceLines.push(highAsia2);
 
       const plAsia2Low = targetSeries.createPriceLine({
         price: lowAsia2,
@@ -209,6 +217,7 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
         title: '',
       });
       linesArray.push(plAsia2Low);
+      activePriceLines.push(lowAsia2);
     }
   }
 
@@ -236,6 +245,7 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
         title: '',
       });
       linesArray.push(pl15_20High);
+      activePriceLines.push(high15_20);
 
       const pl15_20Low = targetSeries.createPriceLine({
         price: low15_20,
@@ -246,6 +256,7 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
         title: '',
       });
       linesArray.push(pl15_20Low);
+      activePriceLines.push(low15_20);
     }
   }
 
@@ -273,6 +284,7 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
         title: '',
       });
       linesArray.push(plAsia3High);
+      activePriceLines.push(highAsia3);
 
       const plAsia3Low = targetSeries.createPriceLine({
         price: lowAsia3,
@@ -283,6 +295,7 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
         title: '',
       });
       linesArray.push(plAsia3Low);
+      activePriceLines.push(lowAsia3);
     }
   }
 
@@ -310,6 +323,7 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
         title: '',
       });
       linesArray.push(pl2000_0400High);
+      activePriceLines.push(high2000_0400);
 
       const pl2000_0400Low = targetSeries.createPriceLine({
         price: low2000_0400,
@@ -320,14 +334,17 @@ function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKline
         title: '',
       });
       linesArray.push(pl2000_0400Low);
+      activePriceLines.push(low2000_0400);
     }
   }
 }
 
 function updateAllPriceLines() {
+  activePriceLines = [];
   drawPriceLinesForSeries(seriesTop, priceLinesTop, rawKlineData);
   if (isDualLayout) {
     drawPriceLinesForSeries(seriesBottom, priceLinesBottom, rawKlineData);
   }
   updateAllSessionCanvases();
 }
+

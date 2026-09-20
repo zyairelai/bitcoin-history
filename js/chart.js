@@ -38,6 +38,7 @@ function createChartOptions(container) {
       ticksVisible: true,
     },
     localization: {
+      priceFormatter: (price) => Math.round(price).toString(),
       timeFormatter: (timestamp) => {
         return formatFullDateTime(timestamp, selectedTimezone);
       },
@@ -92,8 +93,8 @@ function initCharts() {
     priceLineVisible: false,
     priceFormat: {
       type: 'price',
-      precision: 2,
-      minMove: 0.01,
+      precision: 0,
+      minMove: 1,
     },
   });
 
@@ -200,12 +201,39 @@ function initCharts() {
     cnt.addEventListener('touchend', onInteractionEnd);
   });
 
-  // Chart double-click handler to switch selectedDate to clicked day in multi-day (1W/3D/2D) views
-  const handleChartDoubleClick = (chartObj, container, e) => {
-    if (!chartObj || !container) return;
+  // Chart double-click handler to copy price line digit to clipboard or switch selectedDate in multi-day view
+  const handleChartDoubleClick = (chartObj, seriesObj, container, e) => {
+    if (!chartObj || !seriesObj || !container) return;
     const rect = container.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
-    if (mouseX < 0 || mouseX > rect.width) return;
+    const mouseY = e.clientY - rect.top;
+
+    if (mouseX < 0 || mouseX > rect.width || mouseY < 0 || mouseY > rect.height) return;
+
+    // Check if double click is near any horizontal price line
+    const clickPrice = seriesObj.coordinateToPrice(mouseY);
+    if (clickPrice !== null && activePriceLines && activePriceLines.length > 0) {
+      // Find closest active line price
+      let closestLinePrice = null;
+      let minPixelDiff = Infinity;
+
+      activePriceLines.forEach(linePrice => {
+        const lineY = seriesObj.priceToCoordinate(linePrice);
+        if (lineY !== null) {
+          const diff = Math.abs(lineY - mouseY);
+          if (diff < minPixelDiff) {
+            minPixelDiff = diff;
+            closestLinePrice = linePrice;
+          }
+        }
+      });
+
+      // Tolerance window of 10 pixels for easy double-clicking on price line
+      if (minPixelDiff <= 10 && closestLinePrice !== null) {
+        showCopySuccessToast(closestLinePrice);
+        return;
+      }
+    }
 
     let timeSec = chartObj.timeScale().coordinateToTime(mouseX);
     if (!timeSec) return;
@@ -230,8 +258,8 @@ function initCharts() {
     }
   };
 
-  containerTop.addEventListener('dblclick', (e) => handleChartDoubleClick(chartTop, containerTop, e));
-  containerBottom.addEventListener('dblclick', (e) => handleChartDoubleClick(chartBottom, containerBottom, e));
+  containerTop.addEventListener('dblclick', (e) => handleChartDoubleClick(chartTop, seriesTop, containerTop, e));
+  containerBottom.addEventListener('dblclick', (e) => handleChartDoubleClick(chartBottom, seriesBottom, containerBottom, e));
 
   // Auto resize handling
   window.addEventListener('resize', () => {

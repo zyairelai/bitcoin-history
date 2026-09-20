@@ -15,6 +15,7 @@ let canvasBottom = null, ctxBottom = null;
 // Price Lines Array for Prev 1D & Asia High/Low Levels & Extend Levels
 let priceLinesTop = [];
 let priceLinesBottom = [];
+let activePriceLines = [];
 
 let ws = null;
 

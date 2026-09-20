@@ -250,3 +250,59 @@ function convertToHeikinAshi(data) {
 
   return haData;
 }
+
+// Toast Popup & Clipboard Copy Helper (Stacked & Auto-disappears in 5 seconds)
+function showCopySuccessToast(textToCopy) {
+  if (!textToCopy && textToCopy !== 0) return;
+  
+  const formattedStr = String(Math.round(textToCopy));
+  
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(formattedStr).catch(() => {});
+  } else {
+    const textArea = document.createElement("textarea");
+    textArea.value = formattedStr;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+    } catch (err) {}
+    document.body.removeChild(textArea);
+  }
+
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+
+  const toastItem = document.createElement('div');
+  toastItem.className = 'toast-item';
+  toastItem.innerHTML = `
+    <div class="toast-icon">✓</div>
+    <span>Successfully copied <span class="toast-number">${formattedStr}</span> to the clipboard</span>
+  `;
+
+  container.appendChild(toastItem);
+
+  // Trigger CSS entry animation
+  requestAnimationFrame(() => {
+    toastItem.classList.add('show');
+  });
+
+  // Remove toast after 3 seconds
+  setTimeout(() => {
+    toastItem.classList.remove('show');
+    setTimeout(() => {
+      if (toastItem.parentNode) {
+        toastItem.parentNode.removeChild(toastItem);
+      }
+    }, 300);
+  }, 3000);
+}
+
+
