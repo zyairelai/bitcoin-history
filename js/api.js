@@ -72,3 +72,27 @@ async function fetchKlines() {
     setLoading(false);
   }
 }
+
+// Fetch a single target Kline candle directly from Binance API for exact timeframe matching
+async function fetchDirectKline(symbol, interval, startTimeMs, endTimeMs) {
+  try {
+    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&startTime=${startTimeMs}&endTime=${endTimeMs}&limit=5`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data || data.length === 0) return null;
+
+    // Pick candle that overlaps with target start time
+    const item = data.find(c => c[0] <= startTimeMs && c[6] >= startTimeMs) || data[0];
+    return {
+      open: parseFloat(item[1]),
+      high: parseFloat(item[2]),
+      low: parseFloat(item[3]),
+      close: parseFloat(item[4])
+    };
+  } catch (e) {
+    console.error('fetchDirectKline error:', e);
+    return null;
+  }
+}
+

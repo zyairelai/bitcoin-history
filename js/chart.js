@@ -334,7 +334,7 @@ function calculateDisplayTimeBounds(selectedDateStr, mode, sessionOnly) {
 }
 
 // Render Chart Data on Both Top and Bottom Charts
-function renderChartData() {
+async function renderChartData() {
   if (!rawKlineData || rawKlineData.length === 0) return;
 
   const { startSec, endSec } = calculateDisplayTimeBounds(selectedDate, daysMode, showSession);
@@ -379,7 +379,7 @@ function renderChartData() {
     ema200Bottom.setData(ema200);
   }
 
-  updateAllPriceLines();
+  await updateAllPriceLines();
 
   // Fit scale edge-to-edge without extra blank space
   if (chartTop) chartTop.timeScale().fitContent();

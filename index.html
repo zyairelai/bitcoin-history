@@ -55,10 +55,10 @@
       <!-- Timeframe Buttons (1m, 3m, 5m, 15m, 1H) -->
       <div class="timeframe-group" id="timeframe-group">
         <button class="tf-btn" data-tf="1m">1m</button>
-        <button class="tf-btn active" data-tf="3m">3m</button>
+        <button class="tf-btn" data-tf="3m">3m</button>
         <button class="tf-btn" data-tf="5m">5m</button>
         <button class="tf-btn" data-tf="15m">15m</button>
-        <button class="tf-btn" data-tf="1h">1H</button>
+        <button class="tf-btn active" data-tf="1h">1H</button>
         <button class="tf-btn" data-tf="4h">4H</button>
       </div>
 
@@ -112,11 +112,15 @@
 
       <div class="header-divider"></div>
 
-      <!-- Level Toggle Buttons (PW PDHLM Fibb Extend ExtendFibb 0800-1200 0800-1400) -->
+      <!-- Level Toggle Buttons (Weekly Monday PDHLM Fibb Extend ExtendFibb 0800-1200 0800-1400) -->
       <div class="level-toggles-group">
-        <label class="toggle-btn" title="Enable/Disable Previous Week High and Low solid purple lines">
-          <input type="checkbox" id="toggle-pw" hidden>
-          <span>PW</span>
+        <label class="toggle-btn active" title="Enable/Disable Previous Week High and Low solid purple lines">
+          <input type="checkbox" id="toggle-pw" checked hidden>
+          <span>Weekly</span>
+        </label>
+        <label class="toggle-btn" title="Enable/Disable Current Week Monday High and Low price lines">
+          <input type="checkbox" id="toggle-monday" hidden>
+          <span>Monday</span>
         </label>
         <label class="toggle-btn active" title="Enable/Disable Previous Daily High, Low, and Mid price lines">
           <input type="checkbox" id="toggle-pdhlm" checked hidden>

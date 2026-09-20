@@ -20,7 +20,7 @@ let activePriceLines = [];
 let ws = null;
 
 let currentSymbol = 'BTCUSDT';
-let currentInterval = '3m';
+let currentInterval = '1h';
 let selectedDate = getLatestPastWeekday();
 let rawKlineData = [];
 
@@ -36,8 +36,9 @@ let daysMode = '1W';
 // Display Timezone Offset ('UTC+8' or 'UTC')
 let selectedTimezone = 'UTC+8';
 
-// Level Toggles State (Default FALSE except showPDHLM)
-let showPW = false;
+// Level Toggles State
+let showPW = true;
+let showMonday = false;
 let showPDHLM = true;
 let showFibb = false;
 let showAsia1 = false;
@@ -80,6 +81,7 @@ const timezoneSelect = document.getElementById('timezone-select');
 
 // Checkbox Toggles
 const togglePWInput = document.getElementById('toggle-pw');
+const toggleMondayInput = document.getElementById('toggle-monday');
 const togglePDHLMInput = document.getElementById('toggle-pdhlm');
 const toggle25_75Input = document.getElementById('toggle-25-75');
 const toggleAsia8_12Input = document.getElementById('toggle-asia-8-12');

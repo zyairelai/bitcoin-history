@@ -91,6 +91,13 @@ function initEventListeners() {
     });
   }
 
+  if (toggleMondayInput) {
+    toggleMondayInput.addEventListener('change', (e) => {
+      showMonday = e.target.checked;
+      updateAllPriceLines();
+    });
+  }
+
   if (togglePDHLMInput) {
     togglePDHLMInput.addEventListener('change', (e) => {
       showPDHLM = e.target.checked;
