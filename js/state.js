@@ -20,7 +20,7 @@ let activePriceLines = [];
 let ws = null;
 
 let currentSymbol = 'BTCUSDT';
-let currentInterval = '1h';
+let currentInterval = '15m';
 let selectedDate = getLatestPastWeekday();
 let rawKlineData = [];
 

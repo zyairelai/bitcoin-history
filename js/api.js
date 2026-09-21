@@ -95,8 +95,8 @@ async function fetchDirectKline(symbol, interval, startTimeMs, endTimeMs) {
     const data = await res.json();
     if (!data || data.length === 0) return null;
 
-    // Pick candle that overlaps with target start time
-    const item = data.find(c => c[0] <= startTimeMs && c[6] >= startTimeMs) || data[0];
+    // Pick candle that overlaps with target start time or falls within range
+    const item = data.find(c => c[0] <= startTimeMs + 1000 && c[6] >= startTimeMs - 1000) || data[0];
     return {
       open: parseFloat(item[1]),
       high: parseFloat(item[2]),
