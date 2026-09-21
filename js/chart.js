@@ -261,6 +261,29 @@ function initCharts() {
   containerTop.addEventListener('dblclick', (e) => handleChartDoubleClick(chartTop, seriesTop, containerTop, e));
   containerBottom.addEventListener('dblclick', (e) => handleChartDoubleClick(chartBottom, seriesBottom, containerBottom, e));
 
+  // Custom right-click context menu handling
+  const handleChartContextMenu = (e) => {
+    e.preventDefault();
+    const menu = document.getElementById('custom-context-menu');
+    if (!menu) return;
+
+    let posX = e.clientX;
+    let posY = e.clientY;
+
+    // Prevent overflow outside viewport
+    const menuWidth = 190;
+    const menuHeight = 50;
+    if (posX + menuWidth > window.innerWidth) posX = window.innerWidth - menuWidth - 8;
+    if (posY + menuHeight > window.innerHeight) posY = window.innerHeight - menuHeight - 8;
+
+    menu.style.left = `${posX}px`;
+    menu.style.top = `${posY}px`;
+    menu.classList.remove('hidden');
+  };
+
+  containerTop.addEventListener('contextmenu', handleChartContextMenu);
+  containerBottom.addEventListener('contextmenu', handleChartContextMenu);
+
   // Auto resize handling
   window.addEventListener('resize', () => {
     resizeCharts();
@@ -334,7 +357,7 @@ function calculateDisplayTimeBounds(selectedDateStr, mode, sessionOnly) {
 }
 
 // Render Chart Data on Both Top and Bottom Charts
-async function renderChartData() {
+async function renderChartData(skipFitContent = false) {
   if (!rawKlineData || rawKlineData.length === 0) return;
 
   const { startSec, endSec } = calculateDisplayTimeBounds(selectedDate, daysMode, showSession);
@@ -381,9 +404,11 @@ async function renderChartData() {
 
   await updateAllPriceLines();
 
-  // Fit scale edge-to-edge without extra blank space
-  if (chartTop) chartTop.timeScale().fitContent();
-  if (chartBottom && isDualLayout) chartBottom.timeScale().fitContent();
+  // Fit scale edge-to-edge without extra blank space (unless skipFitContent is true)
+  if (!skipFitContent) {
+    if (chartTop) chartTop.timeScale().fitContent();
+    if (chartBottom && isDualLayout) chartBottom.timeScale().fitContent();
+  }
 
   // Update Stepper Button Disabled States
   datePrevBtn.disabled = !getAdjacentWeekday(selectedDate, -1);

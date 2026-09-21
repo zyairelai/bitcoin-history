@@ -1,10 +1,14 @@
 // Fetch Binance BTC Kline REST Data
-async function fetchKlines() {
+async function fetchKlines(preserveView = false) {
   setLoading(true);
   if (ws) {
     ws.close();
     ws = null;
   }
+
+  // Save current logical ranges if preserveView is enabled
+  const currentRangeTop = (preserveView && chartTop) ? chartTop.timeScale().getVisibleLogicalRange() : null;
+  const currentRangeBottom = (preserveView && chartBottom) ? chartBottom.timeScale().getVisibleLogicalRange() : null;
 
   try {
     const { startSec: displayStartSec, endSec: displayEndSec } = calculateDisplayTimeBounds(selectedDate, daysMode, false);
@@ -56,10 +60,19 @@ async function fetchKlines() {
       currentFetchStart = lastCloseTime + 1;
     }
 
-    renderChartData();
+    renderChartData(preserveView);
 
-    if (chartTop) chartTop.timeScale().fitContent();
-    if (chartBottom && isDualLayout) chartBottom.timeScale().fitContent();
+    if (preserveView) {
+      if (chartTop && currentRangeTop) {
+        chartTop.timeScale().setVisibleLogicalRange(currentRangeTop);
+      }
+      if (chartBottom && currentRangeBottom) {
+        chartBottom.timeScale().setVisibleLogicalRange(currentRangeBottom);
+      }
+    } else {
+      if (chartTop) chartTop.timeScale().fitContent();
+      if (chartBottom && isDualLayout) chartBottom.timeScale().fitContent();
+    }
 
     if (statusDot) statusDot.className = 'status-dot online';
     if (statusText) statusText.textContent = `Data Loaded (${selectedDate} ${currentInterval} UTC+8)`;

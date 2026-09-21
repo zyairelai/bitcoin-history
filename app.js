@@ -43,10 +43,16 @@ function initEventListeners() {
       updateChartTypeBtnUI();
       
       // Preserve visible zoom level / range before rendering
-      const currentRange = chartTop ? chartTop.timeScale().getVisibleLogicalRange() : null;
-      renderChartData();
-      if (chartTop && currentRange) {
-        chartTop.timeScale().setVisibleLogicalRange(currentRange);
+      const currentRangeTop = chartTop ? chartTop.timeScale().getVisibleLogicalRange() : null;
+      const currentRangeBottom = chartBottom ? chartBottom.timeScale().getVisibleLogicalRange() : null;
+
+      renderChartData(true);
+
+      if (chartTop && currentRangeTop) {
+        chartTop.timeScale().setVisibleLogicalRange(currentRangeTop);
+      }
+      if (chartBottom && currentRangeBottom) {
+        chartBottom.timeScale().setVisibleLogicalRange(currentRangeBottom);
       }
     });
   }
@@ -204,6 +210,29 @@ function initEventListeners() {
 
   initCalendarListeners();
   initPlaybackListeners();
+
+  // Custom Context Menu Refresh Click & Global Dismiss
+  const contextMenu = document.getElementById('custom-context-menu');
+  const contextRefreshBtn = document.getElementById('context-refresh-btn');
+
+  if (contextRefreshBtn) {
+    contextRefreshBtn.addEventListener('click', async () => {
+      if (contextMenu) contextMenu.classList.add('hidden');
+      await fetchKlines(true);
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (contextMenu && !contextMenu.classList.contains('hidden')) {
+      if (!contextMenu.contains(e.target)) {
+        contextMenu.classList.add('hidden');
+      }
+    }
+  });
+
+  document.addEventListener('scroll', () => {
+    if (contextMenu) contextMenu.classList.add('hidden');
+  }, true);
 }
 
 // App Initialization
