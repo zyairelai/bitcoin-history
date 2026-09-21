@@ -116,11 +116,6 @@ function initEventListeners() {
     updateAllPriceLines();
   });
 
-  toggleAsia8_12Input.addEventListener('change', (e) => {
-    showAsia1 = e.target.checked;
-    updateAllPriceLines();
-  });
-
   toggleAsia8_14Input.addEventListener('change', (e) => {
     showAsia2 = e.target.checked;
     updateAllPriceLines();

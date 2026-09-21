@@ -253,46 +253,7 @@ async function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = ra
     }
   }
 
-  // 0800-1200 Asia Session
-  if (showAsia1) {
-    const asia1StartSec = targetDayStartSec + (8 * 3600);
-    const asia1EndSec = targetDayStartSec + (12 * 3600);
-
-    const candlesAsia1 = dataSource.filter(item => item.time >= asia1StartSec && item.time < asia1EndSec);
-    if (candlesAsia1.length > 0) {
-      let highAsia1 = -Infinity;
-      let lowAsia1 = Infinity;
-
-      candlesAsia1.forEach(c => {
-        if (c.high > highAsia1) highAsia1 = c.high;
-        if (c.low < lowAsia1) lowAsia1 = c.low;
-      });
-
-      const plAsia1High = targetSeries.createPriceLine({
-        price: highAsia1,
-        color: '#ef5350',
-        lineWidth: 2,
-        lineStyle: LightweightCharts.LineStyle.Solid,
-        axisLabelVisible: false,
-        title: '',
-      });
-      linesArray.push(plAsia1High);
-      activePriceLines.push(highAsia1);
-
-      const plAsia1Low = targetSeries.createPriceLine({
-        price: lowAsia1,
-        color: '#ef5350',
-        lineWidth: 2,
-        lineStyle: LightweightCharts.LineStyle.Solid,
-        axisLabelVisible: false,
-        title: '',
-      });
-      linesArray.push(plAsia1Low);
-      activePriceLines.push(lowAsia1);
-    }
-  }
-
-  // Asia Session 2: 0800-1400 (Summer) or 0800-1500 (Winter DST shift)
+  // Asia Session: 0800-1400 (Summer) or 0800-1500 (Winter DST shift)
   if (showAsia2) {
     const ukShift = isUKSummerTime(selectedDate) ? 0 : 1;
     const asia2StartSec = targetDayStartSec + (8 * 3600);

@@ -138,9 +138,10 @@
           <input type="checkbox" id="toggle-extend" hidden>
           <span>150%</span>
         </label>
-        <label class="toggle-btn" title="Enable/Disable 08:00-12:00 UTC+8 Asia Session High & Low solid red lines">
-          <input type="checkbox" id="toggle-asia-8-12" hidden>
-          <span>0800-1200</span>
+        <label class="toggle-btn"
+          title="Enable/Disable Previous Day 20:00 - Today 04:00 UTC+8 Session High & Low solid green lines">
+          <input type="checkbox" id="toggle-session-2000-0400" hidden>
+          <span>2000-0400</span>
         </label>
         <label class="toggle-btn" title="Enable/Disable 08:00-14:00 UTC+8 Session High & Low solid red lines">
           <input type="checkbox" id="toggle-asia-8-14" hidden>
@@ -153,10 +154,6 @@
         <label class="toggle-btn" title="Enable/Disable 08:00-20:00 UTC+8 Day Session High & Low solid red lines">
           <input type="checkbox" id="toggle-asia-8-20" hidden>
           <span>0800-2000</span>
-        </label>
-        <label class="toggle-btn" title="Enable/Disable Previous Day 20:00 - Today 04:00 UTC+8 Session High & Low solid green lines">
-          <input type="checkbox" id="toggle-session-2000-0400" hidden>
-          <span>2000-0400</span>
         </label>
       </div>
 
@@ -191,30 +188,31 @@
           <option value="UTC+8" selected>UTC+8</option>
         </select>
       </div>
-  <!-- Custom Context Menu for Right-Click Refresh -->
-  <div id="custom-context-menu" class="context-menu hidden">
-    <button id="context-refresh-btn" class="context-menu-item">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="23 4 23 10 17 10"></polyline>
-        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-      </svg>
-      <span>Refresh Chart & Klines</span>
-    </button>
-  </div>
+      <!-- Custom Context Menu for Right-Click Refresh -->
+      <div id="custom-context-menu" class="context-menu hidden">
+        <button id="context-refresh-btn" class="context-menu-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          <span>Refresh</span>
+        </button>
+      </div>
 
-  <!-- Success Toast Container for Stacked Notifications -->
-  <div id="toast-container" class="toast-container"></div>
+      <!-- Success Toast Container for Stacked Notifications -->
+      <div id="toast-container" class="toast-container"></div>
 
-  <script src="js/utils.js"></script>
-  <script src="js/state.js"></script>
-  <script src="js/events.js"></script>
-  <script src="js/sessions.js"></script>
-  <script src="js/priceLines.js"></script>
-  <script src="js/chart.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/calendar.js"></script>
-  <script src="js/playback.js"></script>
-  <script src="app.js"></script>
+      <script src="js/utils.js"></script>
+      <script src="js/state.js"></script>
+      <script src="js/events.js"></script>
+      <script src="js/sessions.js"></script>
+      <script src="js/priceLines.js"></script>
+      <script src="js/chart.js"></script>
+      <script src="js/api.js"></script>
+      <script src="js/calendar.js"></script>
+      <script src="js/playback.js"></script>
+      <script src="app.js"></script>
 </body>
 
 </html>
