@@ -115,7 +115,7 @@ async function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = ra
   let highAsia2 = -Infinity, lowAsia2 = Infinity;
   if (showAsia2) {
     const asia2StartSec = targetDayStartSec + (8 * 3600);
-    const asia2EndSec = targetDayStartSec + ((14 + ukShift) * 3600);
+    const asia2EndSec = targetDayStartSec + (14 * 3600); // zones.py: fixed 14:00 UTC+8, no DST shift
     filterSessionCandles(dataSource, asia2StartSec, asia2EndSec - 1, currentInterval).forEach(c => {
       if (c.high > highAsia2) highAsia2 = c.high;
       if (c.low < lowAsia2) lowAsia2 = c.low;
@@ -220,14 +220,16 @@ async function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = ra
       addPriceLine(targetSeries, linesArray, prev25, '#ffeb3b', 2, LightweightCharts.LineStyle.Dotted);
     }
     if (showExtend) {
-      const midDist = (prevHigh - prevLow) / 2;
-      addPriceLine(targetSeries, linesArray, prevHigh + midDist, '#ffeb3b', 2, LightweightCharts.LineStyle.Solid);
-      addPriceLine(targetSeries, linesArray, prevLow  - midDist, '#ffeb3b', 2, LightweightCharts.LineStyle.Solid);
+      // 150%: zones.py uses gap_val * 2 where gap_val = prev75 - prevMid
+      const gapVal = prev75 - prevMid;
+      addPriceLine(targetSeries, linesArray, prevHigh + gapVal * 2, '#ffeb3b', 2, LightweightCharts.LineStyle.Solid);
+      addPriceLine(targetSeries, linesArray, prevLow  - gapVal * 2, '#ffeb3b', 2, LightweightCharts.LineStyle.Solid);
     }
     if (showExtendFibb) {
-      const quarterDist = (prevHigh - prevLow) / 4;
-      addPriceLine(targetSeries, linesArray, prevHigh + quarterDist, '#ffeb3b', 2, LightweightCharts.LineStyle.Dotted);
-      addPriceLine(targetSeries, linesArray, prevLow  - quarterDist, '#ffeb3b', 2, LightweightCharts.LineStyle.Dotted);
+      // 125%: zones.py uses gap_val * 1 where gap_val = prev75 - prevMid
+      const gapVal = prev75 - prevMid;
+      addPriceLine(targetSeries, linesArray, prevHigh + gapVal, '#ffeb3b', 2, LightweightCharts.LineStyle.Dotted);
+      addPriceLine(targetSeries, linesArray, prevLow  - gapVal, '#ffeb3b', 2, LightweightCharts.LineStyle.Dotted);
     }
   }
 

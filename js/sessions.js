@@ -79,8 +79,8 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries, d
       },
       {
         title: 'London',
-        startOffsetSec: (15 + ukShift) * 3600,            // 15:00 UTC+8
-        endOffsetSec: (18 + ukShift) * 3600,              // 18:00 UTC+8
+        startOffsetSec: 15 * 3600,                        // 15:00 UTC+8 (zones.py: get_session_levels 15-20, no shift)
+        endOffsetSec: 20 * 3600,                          // 20:00 UTC+8
         fillColor: 'rgba(76, 175, 80, 0.15)',             // Green Shading
         borderColor: 'rgba(76, 175, 80, 0.4)',
         textColor: '#4caf50',
