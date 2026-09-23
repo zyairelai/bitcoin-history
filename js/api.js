@@ -30,7 +30,7 @@ async function fetchKlines(preserveView = false) {
     let currentFetchStart = fullFetchStart;
 
     while (currentFetchStart < targetEndTime) {
-      const url = `https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=${currentInterval}&startTime=${currentFetchStart}&endTime=${targetEndTime}&limit=1000`;
+      const url = `https://fapi.binance.com/fapi/v1/klines?symbol=${currentSymbol}&interval=${currentInterval}&startTime=${currentFetchStart}&endTime=${targetEndTime}&limit=1000`; // Futures, matching zones.py
       
       const res = await fetch(url);
       if (!res.ok) {
@@ -86,7 +86,7 @@ async function fetchKlines(preserveView = false) {
 // Fetch a single target Kline candle directly from Binance API for exact timeframe matching
 async function fetchDirectKline(symbol, interval, startTimeMs, endTimeMs) {
   try {
-    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&startTime=${startTimeMs}&endTime=${endTimeMs}&limit=5`;
+    const url = `https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=${interval}&startTime=${startTimeMs}&endTime=${endTimeMs}&limit=5`; // Futures, matching zones.py
     const res = await fetch(url);
     if (!res.ok) return null;
     const data = await res.json();
