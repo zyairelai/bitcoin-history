@@ -85,6 +85,7 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries, d
         borderColor: 'rgba(76, 175, 80, 0.4)',
         textColor: '#4caf50',
       },
+      /*
       {
         title: 'Pre-Market',
         startOffsetSec: (20 + usShift) * 3600 + 1800,     // 20:30 UTC+8
@@ -93,6 +94,7 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries, d
         borderColor: 'rgba(156, 39, 176, 0.4)',
         textColor: '#ab47bc',
       },
+      */
       {
         title: 'New York',
         startOffsetSec: (21 + usShift) * 3600 + 1800,     // 21:30 UTC+8
@@ -107,15 +109,17 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries, d
       const sessionStartSec = dayStartSec + config.startOffsetSec;
       const sessionEndSec = dayStartSec + config.endOffsetSec;
 
-      const sessionCandles = dataSource.filter(c => c.time >= sessionStartSec && c.time <= sessionEndSec);
+      const sessionCandles = filterSessionCandles(dataSource, sessionStartSec, sessionEndSec, currentInterval);
       if (sessionCandles.length === 0) return;
 
       let sHigh = -Infinity;
       let sLow = Infinity;
+      let sQuoteVolume = 0;
 
       sessionCandles.forEach(c => {
         if (c.high > sHigh) sHigh = c.high;
         if (c.low < sLow) sLow = c.low;
+        sQuoteVolume += (c.quoteVolume || 0);
       });
 
       // Horizontal X bounds calculation using exact session candle timestamps
@@ -162,16 +166,36 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries, d
           targetCtx.lineWidth = 1;
           targetCtx.strokeRect(left, top, width, height);
 
-          // Calculate price range (High - Low) rounded to 1 decimal for NQ/BTC
-          const rangeDiff = (sHigh - sLow).toFixed(1);
-          const labelText = `${config.title} · ${rangeDiff}`;
+          // Calculate price range (High - Low) rounded to integer (no decimal) with 'u' suffix
+          const rangeDiff = Math.round(sHigh - sLow);
+          const rangeLabel = `${config.title} · ${rangeDiff}u`;
 
-          // Label text below box (bottom center)
-          targetCtx.fillStyle = config.textColor;
+          // Format volume in USD as human-readable shorthand (e.g. 123 Million, 1.3 Billion)
+          let volLabel;
+          if (sQuoteVolume >= 1e9) {
+            volLabel = `${parseFloat((sQuoteVolume / 1e9).toFixed(1))} Billion`;
+          } else if (sQuoteVolume >= 1e6) {
+            volLabel = `${Math.round(sQuoteVolume / 1e6)} Million`;
+          } else {
+            volLabel = `${Math.round(sQuoteVolume / 1e3)}K`;
+          }
+
+          // Set font for labels
           targetCtx.font = '600 12px Inter, sans-serif';
           targetCtx.textAlign = 'center';
+
+          const centerX = left + (width / 2);
+          const labelBaseY = bottom + 6;
+
+          // Range label (line 1)
+          targetCtx.fillStyle = config.textColor;
           targetCtx.textBaseline = 'top';
-          targetCtx.fillText(labelText, left + (width / 2), bottom + 6);
+          targetCtx.fillText(rangeLabel, centerX, labelBaseY);
+
+          // Volume label (line 2) — same size, not bold, slightly dimmer
+          targetCtx.font = '500 12px Inter, sans-serif';
+          targetCtx.fillStyle = config.textColor + 'bb'; // 73% opacity
+          targetCtx.fillText(volLabel, centerX, labelBaseY + 17);
         }
       }
     });
@@ -180,7 +204,4 @@ function drawOverlayCanvas(targetCanvas, targetCtx, targetChart, targetSeries, d
 
 function updateAllSessionCanvases() {
   drawOverlayCanvas(canvasTop, ctxTop, chartTop, seriesTop, rawKlineData);
-  if (isDualLayout) {
-    drawOverlayCanvas(canvasBottom, ctxBottom, chartBottom, seriesBottom, rawKlineData);
-  }
 }

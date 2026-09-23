@@ -216,13 +216,8 @@ function updateEconomicOverlay() {
     containerTop.appendChild(ecoWidget);
   }
 
-  // Hide economic calendar widget in dual split layout as requested
-  if (isDualLayout) {
-    ecoWidget.style.display = 'none';
-    return;
-  } else {
-    ecoWidget.style.display = 'block';
-  }
+  ecoWidget.style.display = 'block';
+
 
   const holidayName = getUSMarketHoliday(selectedDate);
   const events = getEventsForDate(selectedDate);

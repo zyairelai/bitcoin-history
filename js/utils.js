@@ -142,6 +142,27 @@ function calculateEMA(data, period) {
   return emaData;
 }
 
+// Helper: Get interval in seconds based on interval string
+function getIntervalSec(interval) {
+  if (interval === '1m') return 60;
+  if (interval === '3m') return 3 * 60;
+  if (interval === '5m') return 5 * 60;
+  if (interval === '15m') return 15 * 60;
+  if (interval === '1h') return 3600;
+  if (interval === '4h') return 4 * 3600;
+  return 15 * 60;
+}
+
+// Helper: Filter candles that overlap with a specific time range (handles 4H/1H boundaries)
+function filterSessionCandles(dataSource, startSec, endSec, currentInterval) {
+  const intSec = getIntervalSec(currentInterval);
+  return dataSource.filter(c => {
+    const cStart = c.time;
+    const cEnd = c.time + intSec - 1;
+    return cStart <= endSec && cEnd >= startSec;
+  });
+}
+
 // Aggregate 1-minute candles into custom N-minute interval candles (e.g., 3-minute)
 function aggregateKlines(candles, intervalMinutes) {
   if (!candles || candles.length === 0 || intervalMinutes <= 1) return candles;

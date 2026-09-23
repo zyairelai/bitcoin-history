@@ -6,9 +6,8 @@ async function fetchKlines(preserveView = false) {
     ws = null;
   }
 
-  // Save current logical ranges if preserveView is enabled
+  // Save current logical range if preserveView is enabled
   const currentRangeTop = (preserveView && chartTop) ? chartTop.timeScale().getVisibleLogicalRange() : null;
-  const currentRangeBottom = (preserveView && chartBottom) ? chartBottom.timeScale().getVisibleLogicalRange() : null;
 
   try {
     const { startSec: displayStartSec, endSec: displayEndSec } = calculateDisplayTimeBounds(selectedDate, daysMode, false);
@@ -47,9 +46,11 @@ async function fetchKlines(preserveView = false) {
         const high = parseFloat(item[2]);
         const low = parseFloat(item[3]);
         const close = parseFloat(item[4]);
+        const volume = parseFloat(item[5]);         // base asset volume (BTC)
+        const quoteVolume = parseFloat(item[7]);    // quote asset volume (USDT)
 
         if (rawKlineData.length === 0 || rawKlineData[rawKlineData.length - 1].time < time) {
-          rawKlineData.push({ time, open, high, low, close });
+          rawKlineData.push({ time, open, high, low, close, volume, quoteVolume });
         }
       });
 
@@ -66,12 +67,8 @@ async function fetchKlines(preserveView = false) {
       if (chartTop && currentRangeTop) {
         chartTop.timeScale().setVisibleLogicalRange(currentRangeTop);
       }
-      if (chartBottom && currentRangeBottom) {
-        chartBottom.timeScale().setVisibleLogicalRange(currentRangeBottom);
-      }
     } else {
       if (chartTop) chartTop.timeScale().fitContent();
-      if (chartBottom && isDualLayout) chartBottom.timeScale().fitContent();
     }
 
     if (statusDot) statusDot.className = 'status-dot online';

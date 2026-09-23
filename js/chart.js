@@ -68,43 +68,30 @@ function createChartOptions(container) {
   };
 }
 
-// Initialize Both Top and Bottom Charts
+// Initialize Chart
 function initCharts() {
   const containerTop = document.getElementById('chart-container-top');
-  const containerBottom = document.getElementById('chart-container-bottom');
 
   chartTop = LightweightCharts.createChart(containerTop, createChartOptions(containerTop));
-  chartBottom = LightweightCharts.createChart(containerBottom, createChartOptions(containerBottom));
 
   // EMA Line Series (Added first so candles render on top)
   ema10Top = chartTop.addLineSeries({ color: '#ff9800', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
   ema20Top = chartTop.addLineSeries({ color: '#4caf50', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-  ema50Top = chartTop.addLineSeries({ color: '#ff9800', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+  ema50Top = chartTop.addLineSeries({ color: '#ff9800', lineWidth: 2.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
   ema200Top = chartTop.addLineSeries({ color: '#e91e63', lineWidth: 3.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
 
-  // Top Chart Candlestick Series (NAS100 / BTC)
-  seriesTop = chartTop.addCandlestickSeries({
-    upColor: '#26a69a',
-    downColor: '#ef5350',
-    borderVisible: false,
-    wickUpColor: '#26a69a',
-    wickDownColor: '#ef5350',
-    lastValueVisible: false,
+  // VWAP Line Series
+  vwapSeries = chartTop.addLineSeries({
+    color: '#ffffff',
+    lineWidth: 3,
     priceLineVisible: false,
-    priceFormat: {
-      type: 'price',
-      precision: 0,
-      minMove: 1,
-    },
+    lastValueVisible: false,
+    crosshairMarkerVisible: false,
+    visible: true,
   });
 
-  // Bottom Chart Series
-  ema10Bottom = chartBottom.addLineSeries({ color: '#ff9800', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-  ema20Bottom = chartBottom.addLineSeries({ color: '#4caf50', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-  ema50Bottom = chartBottom.addLineSeries({ color: '#ff9800', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-  ema200Bottom = chartBottom.addLineSeries({ color: '#e91e63', lineWidth: 3.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
-
-  seriesBottom = chartBottom.addCandlestickSeries({
+  // Chart Candlestick Series (NAS100 / BTC)
+  seriesTop = chartTop.addCandlestickSeries({
     upColor: '#26a69a',
     downColor: '#ef5350',
     borderVisible: false,
@@ -122,57 +109,10 @@ function initCharts() {
   canvasTop = document.getElementById('session-canvas-top');
   ctxTop = canvasTop.getContext('2d');
 
-  canvasBottom = document.getElementById('session-canvas-bottom');
-  ctxBottom = canvasBottom.getContext('2d');
-
-  // Synchronize Time Scales (Panning & Zooming) Bidirectionally
-  chartTop.timeScale().subscribeVisibleLogicalRangeChange(range => {
-    if (isSyncingRange || !range || !isDualLayout) return;
-    isSyncingRange = true;
-    chartBottom.timeScale().setVisibleLogicalRange(range);
-    updateAllSessionCanvases();
-    isSyncingRange = false;
-  });
-
-  chartBottom.timeScale().subscribeVisibleLogicalRangeChange(range => {
-    if (isSyncingRange || !range || !isDualLayout) return;
-    isSyncingRange = true;
-    chartTop.timeScale().setVisibleLogicalRange(range);
-    updateAllSessionCanvases();
-    isSyncingRange = false;
-  });
-
-  // Synchronize Crosshair vertical movement across both charts
-  let isSyncingCrosshair = false;
-
-  chartTop.subscribeCrosshairMove(param => {
-    if (isSyncingCrosshair || !isDualLayout) return;
-    isSyncingCrosshair = true;
-    if (param && param.time) {
-      chartBottom.setCrosshairPosition(NaN, param.time, seriesBottom);
-    } else {
-      chartBottom.clearCrosshairPosition();
-    }
-    isSyncingCrosshair = false;
-  });
-
-  chartBottom.subscribeCrosshairMove(param => {
-    if (isSyncingCrosshair || !isDualLayout) return;
-    isSyncingCrosshair = true;
-    if (param && param.time) {
-      chartTop.setCrosshairPosition(NaN, param.time, seriesTop);
-    } else {
-      chartTop.clearCrosshairPosition();
-    }
-    isSyncingCrosshair = false;
-  });
-
   // Redraw overlays on visible range change & logical zoom/pan
   const triggerOverlayRedraw = () => updateAllSessionCanvases();
   chartTop.timeScale().subscribeVisibleTimeRangeChange(triggerOverlayRedraw);
   chartTop.timeScale().subscribeVisibleLogicalRangeChange(triggerOverlayRedraw);
-  chartBottom.timeScale().subscribeVisibleTimeRangeChange(triggerOverlayRedraw);
-  chartBottom.timeScale().subscribeVisibleLogicalRangeChange(triggerOverlayRedraw);
 
   // Redraw canvas continuously during active mouse drag / zoom operations
   let isInteracting = false;
@@ -191,15 +131,12 @@ function initCharts() {
     updateAllSessionCanvases();
   };
 
-  [containerTop, containerBottom].forEach(cnt => {
-    if (!cnt) return;
-    cnt.addEventListener('mousedown', onInteractionStart);
-    cnt.addEventListener('wheel', triggerOverlayRedraw, { passive: true });
-    cnt.addEventListener('mouseup', onInteractionEnd);
-    cnt.addEventListener('mouseleave', onInteractionEnd);
-    cnt.addEventListener('touchstart', onInteractionStart, { passive: true });
-    cnt.addEventListener('touchend', onInteractionEnd);
-  });
+  containerTop.addEventListener('mousedown', onInteractionStart);
+  containerTop.addEventListener('wheel', triggerOverlayRedraw, { passive: true });
+  containerTop.addEventListener('mouseup', onInteractionEnd);
+  containerTop.addEventListener('mouseleave', onInteractionEnd);
+  containerTop.addEventListener('touchstart', onInteractionStart, { passive: true });
+  containerTop.addEventListener('touchend', onInteractionEnd);
 
   // Chart double-click handler to copy price line digit to clipboard or switch selectedDate in multi-day view
   const handleChartDoubleClick = (chartObj, seriesObj, container, e) => {
@@ -259,7 +196,6 @@ function initCharts() {
   };
 
   containerTop.addEventListener('dblclick', (e) => handleChartDoubleClick(chartTop, seriesTop, containerTop, e));
-  containerBottom.addEventListener('dblclick', (e) => handleChartDoubleClick(chartBottom, seriesBottom, containerBottom, e));
 
   // Custom right-click context menu handling
   const handleChartContextMenu = (e) => {
@@ -282,7 +218,6 @@ function initCharts() {
   };
 
   containerTop.addEventListener('contextmenu', handleChartContextMenu);
-  containerBottom.addEventListener('contextmenu', handleChartContextMenu);
 
   // Auto resize handling
   window.addEventListener('resize', () => {
@@ -292,13 +227,8 @@ function initCharts() {
 
 function resizeCharts() {
   const containerTop = document.getElementById('chart-container-top');
-  const containerBottom = document.getElementById('chart-container-bottom');
-
   if (chartTop && containerTop) {
     chartTop.applyOptions({ width: containerTop.clientWidth, height: containerTop.clientHeight });
-  }
-  if (chartBottom && containerBottom) {
-    chartBottom.applyOptions({ width: containerBottom.clientWidth, height: containerBottom.clientHeight });
   }
   updateAllSessionCanvases();
 }
@@ -356,30 +286,64 @@ function calculateDisplayTimeBounds(selectedDateStr, mode, sessionOnly) {
   return { startSec: targetDayStartSec + (5 * 3600), endSec: targetDayEndSec };
 }
 
-// Render Chart Data on Both Top and Bottom Charts
+/**
+ * Calculate VWAP for the given candle data.
+ * Returns an array of { time, value } points.
+ */
+function calculateVWAP(candles) {
+  if (!candles || candles.length === 0) return [];
+
+  let cumulativeTPV = 0; // cumulative (typical price * volume)
+  let cumulativeVol = 0;
+  let currentDay = null;
+  const result = [];
+
+  candles.forEach(c => {
+    // 00:00 UTC (08:00 UTC+8) boundary check
+    const candleDay = Math.floor(c.time / 86400);
+    
+    if (currentDay !== candleDay) {
+      // Insert a whitespace point 1 second before the new day's first candle
+      // to break the connecting line from the previous day.
+      if (currentDay !== null) {
+        result.push({ time: c.time - 1 });
+      }
+
+      cumulativeTPV = 0;
+      cumulativeVol = 0;
+      currentDay = candleDay;
+    }
+
+    const typicalPrice = (c.high + c.low + c.close) / 3;
+    const vol = c.volume || 0;
+    
+    cumulativeTPV += typicalPrice * vol;
+    cumulativeVol += vol;
+    
+    result.push({
+      time: c.time,
+      value: cumulativeVol > 0 ? cumulativeTPV / cumulativeVol : typicalPrice,
+    });
+  });
+
+  return result;
+}
+
+// Render Chart Data
 async function renderChartData(skipFitContent = false) {
   if (!rawKlineData || rawKlineData.length === 0) return;
 
   const { startSec, endSec } = calculateDisplayTimeBounds(selectedDate, daysMode, showSession);
 
   const badgeTop = document.getElementById('badge-top');
-  const badgeBottom = document.getElementById('badge-bottom');
-
   if (badgeTop) badgeTop.textContent = 'BTCUSDT (Binance)';
-  if (badgeBottom) badgeBottom.textContent = 'BTCUSDT (Binance)';
 
   // Visible candle subset
   const activeData = rawKlineData.filter(item => item.time >= startSec && item.time <= endSec);
   const haCandles = convertToHeikinAshi(activeData);
 
-  if (isDualLayout) {
-    // Top chart: Raw Candlesticks, Bottom chart: Heikin-Ashi
-    seriesTop.setData(activeData);
-    seriesBottom.setData(haCandles);
-  } else {
-    // Single chart: Dynamic based on isHeikinAshi toggle
-    seriesTop.setData(isHeikinAshi ? haCandles : activeData);
-  }
+  // Single chart: Dynamic based on isHeikinAshi toggle
+  seriesTop.setData(isHeikinAshi ? haCandles : activeData);
 
   // Fast lookup sets for valid timestamps
   const validTimes = new Set(activeData.map(d => d.time));
@@ -395,11 +359,12 @@ async function renderChartData(skipFitContent = false) {
   ema50Top.setData(ema50);
   ema200Top.setData(ema200);
 
-  if (isDualLayout) {
-    ema10Bottom.setData(ema10);
-    ema20Bottom.setData(ema20);
-    ema50Bottom.setData(ema50);
-    ema200Bottom.setData(ema200);
+  // VWAP: compute and render
+  if (activeData.length > 0) {
+    const vwapData = calculateVWAP(activeData);
+    vwapSeries.setData(vwapData);
+  } else {
+    vwapSeries.setData([]);
   }
 
   await updateAllPriceLines();
@@ -407,7 +372,6 @@ async function renderChartData(skipFitContent = false) {
   // Fit scale edge-to-edge without extra blank space (unless skipFitContent is true)
   if (!skipFitContent) {
     if (chartTop) chartTop.timeScale().fitContent();
-    if (chartBottom && isDualLayout) chartBottom.timeScale().fitContent();
   }
 
   // Update Stepper Button Disabled States

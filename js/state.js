@@ -1,20 +1,15 @@
-// State Variables for Dual Chart Layout
+// State Variables for Single Chart Layout
 let chartTop = null;
-let chartBottom = null;
-
-let seriesTop = null;        // Top Chart Series
-let seriesBottom = null;     // Bottom Chart Series
+let seriesTop = null;        // Chart Candlestick Series
 
 let ema10Top = null, ema20Top = null, ema50Top = null, ema200Top = null;
-let ema10Bottom = null, ema20Bottom = null, ema50Bottom = null, ema200Bottom = null;
+let vwapSeries = null;       // VWAP Line Series
 
-// Overlay HTML5 canvas contexts for Top and Bottom charts
+// Overlay HTML5 canvas context for chart
 let canvasTop = null, ctxTop = null;
-let canvasBottom = null, ctxBottom = null;
 
 // Price Lines Array for Prev 1D & Asia High/Low Levels & Extend Levels
 let priceLinesTop = [];
-let priceLinesBottom = [];
 let activePriceLines = [];
 
 let ws = null;
@@ -24,11 +19,10 @@ let currentInterval = '15m';
 let selectedDate = getLatestPastWeekday();
 let rawKlineData = [];
 
-// Candle Mode (false = Raw Candlesticks, true = Heikin Ashi for single view)
+// Candle Mode (false = Raw Candlesticks, true = Heikin Ashi)
 let isHeikinAshi = true;
 
-// Layout State (false = Single Chart, true = Dual Split Layout)
-let isDualLayout = false;
+
 
 // Day Display Range Mode ('1D', '2D', '3D', '1W')
 let daysMode = '1W';
@@ -49,11 +43,6 @@ let showExtend = false;
 let showExtendFibb = false;
 let showSession = false;
 
-// Synchronizing flag to prevent circular range updates
-let isSyncingRange = false;
-
-
-
 // Calendar Modal State
 let currentCalYear = new Date().getFullYear();
 let currentCalMonth = new Date().getMonth();
@@ -72,8 +61,6 @@ const calPrevBtn = document.getElementById('cal-prev-month');
 const calNextBtn = document.getElementById('cal-next-month');
 
 const timeframeGroup = document.getElementById('timeframe-group');
-const layoutToggleBtn = document.getElementById('layout-toggle');
-const panelBottom = document.getElementById('panel-bottom');
 const loadingOverlay = document.getElementById('loading-overlay');
 
 const timezoneSelect = document.getElementById('timezone-select');
@@ -90,6 +77,7 @@ const toggleSession2000_0400Input = document.getElementById('toggle-session-2000
 const toggleExtendInput = document.getElementById('toggle-extend');
 const toggleExtendFibbInput = document.getElementById('toggle-extend-fibb');
 const toggleSessionInput = document.getElementById('toggle-session');
+
 
 const statusDot = document.getElementById('status-dot');
 const statusText = document.getElementById('status-text');

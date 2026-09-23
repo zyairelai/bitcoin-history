@@ -36,7 +36,7 @@ function updateChartTypeBtnUI() {
 function initEventListeners() {
   const chartTypeToggleBtn = document.getElementById('chart-type-toggle');
 
-  // Toggle Candlestick vs Heikin-Ashi mode in single view
+  // Toggle Candlestick vs Heikin-Ashi mode
   if (chartTypeToggleBtn) {
     chartTypeToggleBtn.addEventListener('click', () => {
       isHeikinAshi = !isHeikinAshi;
@@ -44,100 +44,49 @@ function initEventListeners() {
       
       // Preserve visible zoom level / range before rendering
       const currentRangeTop = chartTop ? chartTop.timeScale().getVisibleLogicalRange() : null;
-      const currentRangeBottom = chartBottom ? chartBottom.timeScale().getVisibleLogicalRange() : null;
 
       renderChartData(true);
 
       if (chartTop && currentRangeTop) {
         chartTop.timeScale().setVisibleLogicalRange(currentRangeTop);
       }
-      if (chartBottom && currentRangeBottom) {
-        chartBottom.timeScale().setVisibleLogicalRange(currentRangeBottom);
-      }
     });
   }
 
-  // Layout Toggle Button Event (Single vs Dual Split View)
-  layoutToggleBtn.addEventListener('click', () => {
-    isDualLayout = !isDualLayout;
-    layoutToggleBtn.classList.toggle('active', isDualLayout);
 
-    if (isDualLayout) {
-      panelBottom.classList.remove('hidden');
-      if (chartBottom) {
-        chartBottom.applyOptions({
-          timeScale: { visible: false }
-        });
-      }
+
+  const handleLevelToggle = (e) => {
+    const input = e.target;
+    const btn = input.closest('.toggle-btn');
+    if (btn) btn.classList.toggle('active', input.checked);
+
+    if (input.id === 'toggle-pw') showPW = input.checked;
+    if (input.id === 'toggle-monday') showMonday = input.checked;
+    if (input.id === 'toggle-pdhlm') showPDHLM = input.checked;
+    if (input.id === 'toggle-asia-8-14') showAsia2 = input.checked;
+    if (input.id === 'toggle-session-15-20') showSession15_20 = input.checked;
+    if (input.id === 'toggle-asia-8-20') showAsia3 = input.checked;
+    if (input.id === 'toggle-session-2000-0400') showSession2000_0400 = input.checked;
+    
+    // Pass the ID of the freshly toggled button so priceLines.js can check for exact overlaps
+    if (input.checked) {
+      updateAllPriceLines(input.id);
     } else {
-      panelBottom.classList.add('hidden');
+      updateAllPriceLines();
     }
+  };
 
-    renderChartData();
+  if (togglePWInput) togglePWInput.addEventListener('change', handleLevelToggle);
+  if (toggleMondayInput) toggleMondayInput.addEventListener('change', handleLevelToggle);
+  if (togglePDHLMInput) togglePDHLMInput.addEventListener('change', handleLevelToggle);
+  if (toggleAsia8_14Input) toggleAsia8_14Input.addEventListener('change', handleLevelToggle);
+  if (toggleSession15_20Input) toggleSession15_20Input.addEventListener('change', handleLevelToggle);
+  if (toggleAsia8_20Input) toggleAsia8_20Input.addEventListener('change', handleLevelToggle);
+  if (toggleSession2000_0400Input) toggleSession2000_0400Input.addEventListener('change', handleLevelToggle);
 
-    if (typeof updateEconomicOverlay === 'function') updateEconomicOverlay();
-
-    // Force chart resize & sync range immediately
-    setTimeout(() => {
-      resizeCharts();
-      if (isDualLayout && chartTop) {
-        const range = chartTop.timeScale().getVisibleLogicalRange();
-        if (range) {
-          chartBottom.timeScale().setVisibleLogicalRange(range);
-        }
-      }
-    }, 50);
-  });
-
-  // Level Checkbox Event Listeners
-  if (togglePWInput) {
-    togglePWInput.addEventListener('change', (e) => {
-      showPW = e.target.checked;
-      updateAllPriceLines();
-    });
-  }
-
-  if (toggleMondayInput) {
-    toggleMondayInput.addEventListener('change', (e) => {
-      showMonday = e.target.checked;
-      updateAllPriceLines();
-    });
-  }
-
-  if (togglePDHLMInput) {
-    togglePDHLMInput.addEventListener('change', (e) => {
-      showPDHLM = e.target.checked;
-      updateAllPriceLines();
-    });
-  }
-
-  toggle25_75Input.addEventListener('change', (e) => {
-    showFibb = e.target.checked;
-    updateAllPriceLines();
-  });
-
-  toggleAsia8_14Input.addEventListener('change', (e) => {
-    showAsia2 = e.target.checked;
-    updateAllPriceLines();
-  });
-
-  if (toggleSession15_20Input) {
-    toggleSession15_20Input.addEventListener('change', (e) => {
-      showSession15_20 = e.target.checked;
-      updateAllPriceLines();
-    });
-  }
-
-  if (toggleAsia8_20Input) {
-    toggleAsia8_20Input.addEventListener('change', (e) => {
-      showAsia3 = e.target.checked;
-      updateAllPriceLines();
-    });
-  }
-
-  if (toggleSession2000_0400Input) {
-    toggleSession2000_0400Input.addEventListener('change', (e) => {
-      showSession2000_0400 = e.target.checked;
+  if (toggle25_75Input) {
+    toggle25_75Input.addEventListener('change', (e) => {
+      showFibb = e.target.checked;
       updateAllPriceLines();
     });
   }
@@ -171,10 +120,7 @@ function initEventListeners() {
     showSession = e.target.checked;
     renderChartData();
     if (chartTop) chartTop.timeScale().fitContent();
-    if (chartBottom && isDualLayout) chartBottom.timeScale().fitContent();
   });
-
-
 
   // Timeframe Selection
   timeframeGroup.addEventListener('click', (e) => {
@@ -195,9 +141,6 @@ function initEventListeners() {
       // Re-apply options so lightweight charts re-evaluates tickMarkFormatter and timeFormatter
       if (chartTop) {
         chartTop.applyOptions(createChartOptions(document.getElementById('chart-container-top')));
-      }
-      if (chartBottom) {
-        chartBottom.applyOptions(createChartOptions(document.getElementById('chart-container-bottom')));
       }
       renderChartData();
     });

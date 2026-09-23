@@ -267,17 +267,14 @@ body, html {
 
 /* Custom Calendar Dropdown Popup */
 .calendar-modal {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
+  position: fixed;
   width: 250px;
   background-color: #1e222d;
   border: 1px solid var(--header-border);
   border-radius: 6px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   padding: 12px;
-  z-index: 100;
+  z-index: 200;
   font-family: var(--font-family);
   user-select: none;
 }
@@ -379,30 +376,7 @@ body, html {
   cursor: default;
 }
 
-/* Layout Toggle Icon Button */
-.layout-icon-btn {
-  background: transparent;
-  border: 1px solid transparent;
-  color: var(--text-main);
-  border-radius: 4px;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: color 0.15s, background-color 0.15s, border-color 0.15s;
-}
 
-.layout-icon-btn:hover {
-  background-color: rgba(255, 255, 255, 0.06);
-}
-
-.layout-icon-btn.active {
-  color: #2962ff;
-  border-color: rgba(41, 98, 255, 0.4);
-  background-color: rgba(41, 98, 255, 0.1);
-}
 
 /* Main Chart Canvas Section */
 .chart-section {

@@ -1,17 +1,30 @@
-// Clear existing Prev 1D & Session Price Lines / Markers for both charts
+// Clear existing Prev 1D & Session Price Lines for a series
 function clearPriceLines(linesArray, targetSeries) {
   linesArray.forEach(line => {
-    try {
-      targetSeries.removePriceLine(line);
-    } catch (e) {
-      // Ignore if already removed
-    }
+    try { targetSeries.removePriceLine(line); } catch (e) {}
   });
   linesArray.length = 0;
 }
 
-// Compute & Draw Prev 1D, 0800-1200 / Asia 2, Extend Lines for a specific chart series
-async function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKlineData) {
+/**
+ * Helper: Create a price line and register it.
+ */
+function addPriceLine(targetSeries, linesArray, price, color, lineWidth, lineStyle) {
+  const pl = targetSeries.createPriceLine({
+    price,
+    color,
+    lineWidth,
+    lineStyle,
+    axisLabelVisible: false,
+    title: '',
+  });
+  linesArray.push(pl);
+  activePriceLines.push(price);
+}
+
+// Compute & Draw all price lines for a specific chart series.
+// newToggleId: the ID of the toggle just turned ON (if any) — used for overlap dedup.
+async function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = rawKlineData, newToggleId = null) {
   clearPriceLines(linesArray, targetSeries);
   if (!dataSource || dataSource.length === 0) return;
 
@@ -21,403 +34,230 @@ async function drawPriceLinesForSeries(targetSeries, linesArray, dataSource = ra
 
   const selectedDateObj = new Date(Date.UTC(y, m - 1, d));
   const isMonday = selectedDateObj.getUTCDay() === 1;
+  const ukShift = isUKSummerTime(selectedDate) ? 0 : 1;
+  const usShift = isUSSummerTime(selectedDate) ? 0 : 1;
 
-  // Compute & Draw PW (Previous Week / Weekly) High & Low solid purple lines using 1W Binance Kline
+  // ─── Step 1: Compute all enabled group (high, low) pairs ─────────────────────
+
+  // Previous Week (not in overlap group — always independent)
+  let pwHigh = -Infinity, pwLow = Infinity;
   if (showPW) {
-    const dayOfWeek = selectedDateObj.getUTCDay(); // 0:Sun, 1:Mon, 2:Tue...
+    const dayOfWeek = selectedDateObj.getUTCDay();
     const diffToMon = (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
     const currentWeekMonUtcSec = targetUtcStartSec - (diffToMon * 86400);
     const prevWeekStartUtcSec = currentWeekMonUtcSec - (7 * 86400);
     const prevWeekEndUtcSec = currentWeekMonUtcSec - 1;
 
-    // Pull 1W Binance kline directly
     const pwKline = await fetchDirectKline(currentSymbol, '1w', prevWeekStartUtcSec * 1000, prevWeekEndUtcSec * 1000);
-
-    let pwHigh = -Infinity;
-    let pwLow = Infinity;
-
     if (pwKline) {
-      pwHigh = pwKline.high;
-      pwLow = pwKline.low;
+      pwHigh = pwKline.high; pwLow = pwKline.low;
     } else {
-      const prevWeekCandles = dataSource.filter(item => item.time >= prevWeekStartUtcSec && item.time <= prevWeekEndUtcSec);
-      prevWeekCandles.forEach(c => {
+      filterSessionCandles(dataSource, prevWeekStartUtcSec, prevWeekEndUtcSec, currentInterval).forEach(c => {
         if (c.high > pwHigh) pwHigh = c.high;
         if (c.low < pwLow) pwLow = c.low;
       });
     }
+  }
 
-    if (pwHigh !== -Infinity && pwLow !== Infinity) {
-      const pwSpecs = [
-        { price: pwHigh, color: '#ab47bc', lineStyle: LightweightCharts.LineStyle.Solid, lineWidth: 2 },
-        { price: pwLow,  color: '#ab47bc', lineStyle: LightweightCharts.LineStyle.Solid, lineWidth: 2 },
-      ];
-
-      pwSpecs.forEach(spec => {
-        const pl = targetSeries.createPriceLine({
-          price: spec.price,
-          color: spec.color,
-          lineWidth: spec.lineWidth,
-          lineStyle: spec.lineStyle,
-          axisLabelVisible: false,
-          title: '',
+  // PDHLM (Previous Day High / Low / Mid)
+  let prevHigh = -Infinity, prevLow = Infinity;
+  if (showPDHLM || showFibb || showExtend || showExtendFibb) {
+    if (isMonday) {
+      const satStartUtcSec = targetUtcStartSec - (48 * 3600);
+      const sunEndUtcSec = targetUtcStartSec - 1;
+      const satKline = await fetchDirectKline(currentSymbol, '1d', satStartUtcSec * 1000, (satStartUtcSec + 86400 - 1) * 1000);
+      const sunKline = await fetchDirectKline(currentSymbol, '1d', (targetUtcStartSec - 86400) * 1000, sunEndUtcSec * 1000);
+      if (satKline && sunKline) {
+        prevHigh = Math.max(satKline.high, sunKline.high);
+        prevLow = Math.min(satKline.low, sunKline.low);
+      } else {
+        filterSessionCandles(dataSource, satStartUtcSec, sunEndUtcSec, currentInterval).forEach(c => {
+          if (c.high > prevHigh) prevHigh = c.high;
+          if (c.low < prevLow) prevLow = c.low;
         });
-        linesArray.push(pl);
-        activePriceLines.push(spec.price);
-      });
+      }
+    } else {
+      const prevDayStartUtcSec = targetUtcStartSec - (24 * 3600);
+      const prevDayEndUtcSec = targetUtcStartSec - 1;
+      const prevDayKline = await fetchDirectKline(currentSymbol, '1d', prevDayStartUtcSec * 1000, prevDayEndUtcSec * 1000);
+      if (prevDayKline) {
+        prevHigh = prevDayKline.high; prevLow = prevDayKline.low;
+      } else {
+        filterSessionCandles(dataSource, prevDayStartUtcSec, prevDayEndUtcSec, currentInterval).forEach(c => {
+          if (c.high > prevHigh) prevHigh = c.high;
+          if (c.low < prevLow) prevLow = c.low;
+        });
+      }
     }
   }
 
-  // Compute & Draw Current Week Monday High & Low lines using 1D Binance Kline (only if selected date is Mon-Fri)
+  // Monday High/Low
+  let monHigh = -Infinity, monLow = Infinity;
   if (showMonday) {
-    const dayOfWeek = selectedDateObj.getUTCDay(); // 0:Sun, 1:Mon, 2:Tue, 3:Wed, 4:Thu, 5:Fri, 6:Sat
+    const dayOfWeek = selectedDateObj.getUTCDay();
     if (dayOfWeek >= 1 && dayOfWeek <= 5) {
       const diffToMon = dayOfWeek - 1;
       const currentWeekMonUtcSec = targetUtcStartSec - (diffToMon * 86400);
       const currentWeekMonEndUtcSec = currentWeekMonUtcSec + 86400 - 1;
-
-      // Pull 1D Binance kline for Monday directly
       const mondayKline = await fetchDirectKline(currentSymbol, '1d', currentWeekMonUtcSec * 1000, currentWeekMonEndUtcSec * 1000);
-
-      let monHigh = -Infinity;
-      let monLow = Infinity;
-
       if (mondayKline) {
-        monHigh = mondayKline.high;
-        monLow = mondayKline.low;
+        monHigh = mondayKline.high; monLow = mondayKline.low;
       } else {
-        const mondayCandles = dataSource.filter(item => item.time >= currentWeekMonUtcSec && item.time <= currentWeekMonEndUtcSec);
-        mondayCandles.forEach(c => {
+        filterSessionCandles(dataSource, currentWeekMonUtcSec, currentWeekMonEndUtcSec, currentInterval).forEach(c => {
           if (c.high > monHigh) monHigh = c.high;
           if (c.low < monLow) monLow = c.low;
         });
       }
-
-      if (monHigh !== -Infinity && monLow !== Infinity) {
-        const mondaySpecs = [
-          { price: monHigh, color: '#29b6f6', lineStyle: LightweightCharts.LineStyle.Solid, lineWidth: 2 },
-          { price: monLow,  color: '#29b6f6', lineStyle: LightweightCharts.LineStyle.Solid, lineWidth: 2 },
-        ];
-
-        mondaySpecs.forEach(spec => {
-          const pl = targetSeries.createPriceLine({
-            price: spec.price,
-            color: spec.color,
-            lineWidth: spec.lineWidth,
-            lineStyle: spec.lineStyle,
-            axisLabelVisible: false,
-            title: '',
-          });
-          linesArray.push(pl);
-          activePriceLines.push(spec.price);
-        });
-      }
     }
   }
 
-  let prevHigh = -Infinity;
-  let prevLow = Infinity;
-
-  if (isMonday) {
-    // On Monday, PREV 1D High/Low (Weekend Range) is Sat 00:00 UTC to Sun 23:59 UTC
-    const satStartUtcSec = targetUtcStartSec - (48 * 3600);
-    const sunEndUtcSec = targetUtcStartSec - 1;
-
-    const satKline = await fetchDirectKline(currentSymbol, '1d', satStartUtcSec * 1000, (satStartUtcSec + 86400 - 1) * 1000);
-    const sunKline = await fetchDirectKline(currentSymbol, '1d', (targetUtcStartSec - 86400) * 1000, sunEndUtcSec * 1000);
-
-    if (satKline && sunKline) {
-      prevHigh = Math.max(satKline.high, sunKline.high);
-      prevLow = Math.min(satKline.low, sunKline.low);
-    } else {
-      const prevDayCandles = dataSource.filter(item => item.time >= satStartUtcSec && item.time <= sunEndUtcSec);
-      prevDayCandles.forEach(c => {
-        if (c.high > prevHigh) prevHigh = c.high;
-        if (c.low < prevLow) prevLow = c.low;
-      });
-    }
-  } else {
-    // Previous UTC day (00:00:00 UTC to 23:59:59 UTC) via 1D Binance Kline
-    const prevDayStartUtcSec = targetUtcStartSec - (24 * 3600);
-    const prevDayEndUtcSec = targetUtcStartSec - 1;
-
-    const prevDayKline = await fetchDirectKline(currentSymbol, '1d', prevDayStartUtcSec * 1000, prevDayEndUtcSec * 1000);
-
-    if (prevDayKline) {
-      prevHigh = prevDayKline.high;
-      prevLow = prevDayKline.low;
-    } else {
-      const prevDayCandles = dataSource.filter(item => item.time >= prevDayStartUtcSec && item.time <= prevDayEndUtcSec);
-      prevDayCandles.forEach(c => {
-        if (c.high > prevHigh) prevHigh = c.high;
-        if (c.low < prevLow) prevLow = c.low;
-      });
-    }
-  }
-
-  if (prevHigh !== -Infinity && prevLow !== Infinity) {
-    const prevMid = (prevHigh + prevLow) / 2;
-
-    // Follow zones.py exact calculations with integer parity adjustments
-    let sumHM = prevHigh + prevMid;
-    if (Number.isInteger(sumHM) && sumHM % 2 !== 0) {
-      sumHM += 1;
-    }
-    const prev75 = sumHM / 2;
-
-    let sumLM = prevLow + prevMid;
-    if (Number.isInteger(sumLM) && sumLM % 2 !== 0) {
-      sumLM -= 1;
-    }
-    const prev25 = sumLM / 2;
-
-    const lineSpecs = [
-      { price: prevHigh, color: '#ffffff', lineStyle: LightweightCharts.LineStyle.Solid, lineWidth: 2, enabled: showPDHLM },
-      { price: prev75,   color: '#ffeb3b', lineStyle: LightweightCharts.LineStyle.Dotted, lineWidth: 2, enabled: showFibb },
-      { price: prevMid,  color: '#ffffff', lineStyle: LightweightCharts.LineStyle.Dashed, lineWidth: 2, enabled: showPDHLM },
-      { price: prev25,   color: '#ffeb3b', lineStyle: LightweightCharts.LineStyle.Dotted, lineWidth: 2, enabled: showFibb },
-      { price: prevLow,  color: '#ffffff', lineStyle: LightweightCharts.LineStyle.Solid, lineWidth: 2, enabled: showPDHLM },
-    ];
-
-    lineSpecs.forEach(spec => {
-      if (spec.enabled) {
-        const pl = targetSeries.createPriceLine({
-          price: spec.price,
-          color: spec.color,
-          lineWidth: spec.lineWidth,
-          lineStyle: spec.lineStyle,
-          axisLabelVisible: false,
-          title: '',
-        });
-        linesArray.push(pl);
-        activePriceLines.push(spec.price);
-      }
-    });
-
-    if (showExtend) {
-      const range1d = prevHigh - prevLow;
-      const midDist = range1d / 2;
-      const extendAbove = prevHigh + midDist;
-      const extendBelow = prevLow - midDist;
-
-      const plAbove = targetSeries.createPriceLine({
-        price: extendAbove,
-        color: '#ffeb3b',
-        lineWidth: 2,
-        lineStyle: LightweightCharts.LineStyle.Solid,
-        axisLabelVisible: false,
-        title: '',
-      });
-      linesArray.push(plAbove);
-      activePriceLines.push(extendAbove);
-
-      const plBelow = targetSeries.createPriceLine({
-        price: extendBelow,
-        color: '#ffeb3b',
-        lineWidth: 2,
-        lineStyle: LightweightCharts.LineStyle.Solid,
-        axisLabelVisible: false,
-        title: '',
-      });
-      linesArray.push(plBelow);
-      activePriceLines.push(extendBelow);
-    }
-
-    if (showExtendFibb) {
-      const range1d = prevHigh - prevLow;
-      const quarterDist = range1d / 4;
-      const extendFibbAbove = prevHigh + quarterDist;
-      const extendFibbBelow = prevLow - quarterDist;
-
-      const plAbove = targetSeries.createPriceLine({
-        price: extendFibbAbove,
-        color: '#ffeb3b',
-        lineWidth: 2,
-        lineStyle: LightweightCharts.LineStyle.Dotted,
-        axisLabelVisible: false,
-        title: '',
-      });
-      linesArray.push(plAbove);
-      activePriceLines.push(extendFibbAbove);
-
-      const plBelow = targetSeries.createPriceLine({
-        price: extendFibbBelow,
-        color: '#ffeb3b',
-        lineWidth: 2,
-        lineStyle: LightweightCharts.LineStyle.Dotted,
-        axisLabelVisible: false,
-        title: '',
-      });
-      linesArray.push(plBelow);
-      activePriceLines.push(extendFibbBelow);
-    }
-  }
-
-  // Asia Session: 0800-1400 (Summer) or 0800-1500 (Winter DST shift)
+  // 0800-1400
+  let highAsia2 = -Infinity, lowAsia2 = Infinity;
   if (showAsia2) {
-    const ukShift = isUKSummerTime(selectedDate) ? 0 : 1;
     const asia2StartSec = targetDayStartSec + (8 * 3600);
     const asia2EndSec = targetDayStartSec + ((14 + ukShift) * 3600);
-
-    const candlesAsia2 = dataSource.filter(item => item.time >= asia2StartSec && item.time < asia2EndSec);
-    if (candlesAsia2.length > 0) {
-      let highAsia2 = -Infinity;
-      let lowAsia2 = Infinity;
-
-      candlesAsia2.forEach(c => {
-        if (c.high > highAsia2) highAsia2 = c.high;
-        if (c.low < lowAsia2) lowAsia2 = c.low;
-      });
-
-      const plAsia2High = targetSeries.createPriceLine({
-        price: highAsia2,
-        color: '#ef5350',
-        lineWidth: 2,
-        lineStyle: LightweightCharts.LineStyle.Solid,
-        axisLabelVisible: false,
-        title: '',
-      });
-      linesArray.push(plAsia2High);
-      activePriceLines.push(highAsia2);
-
-      const plAsia2Low = targetSeries.createPriceLine({
-        price: lowAsia2,
-        color: '#ef5350',
-        lineWidth: 2,
-        lineStyle: LightweightCharts.LineStyle.Solid,
-        axisLabelVisible: false,
-        title: '',
-      });
-      linesArray.push(plAsia2Low);
-      activePriceLines.push(lowAsia2);
-    }
+    filterSessionCandles(dataSource, asia2StartSec, asia2EndSec - 1, currentInterval).forEach(c => {
+      if (c.high > highAsia2) highAsia2 = c.high;
+      if (c.low < lowAsia2) lowAsia2 = c.low;
+    });
   }
 
-  // Session 1500-2000 (15:00 - 20:00 UTC+8)
+  // 1500-2000
+  let high15_20 = -Infinity, low15_20 = Infinity;
   if (showSession15_20) {
     const start15_20 = targetDayStartSec + (15 * 3600);
     const end15_20 = targetDayStartSec + (20 * 3600);
-
-    const candles15_20 = dataSource.filter(item => item.time >= start15_20 && item.time < end15_20);
-    if (candles15_20.length > 0) {
-      let high15_20 = -Infinity;
-      let low15_20 = Infinity;
-
-      candles15_20.forEach(c => {
-        if (c.high > high15_20) high15_20 = c.high;
-        if (c.low < low15_20) low15_20 = c.low;
-      });
-
-      const pl15_20High = targetSeries.createPriceLine({
-        price: high15_20,
-        color: '#ef5350',
-        lineWidth: 2,
-        lineStyle: LightweightCharts.LineStyle.Solid,
-        axisLabelVisible: false,
-        title: '',
-      });
-      linesArray.push(pl15_20High);
-      activePriceLines.push(high15_20);
-
-      const pl15_20Low = targetSeries.createPriceLine({
-        price: low15_20,
-        color: '#ef5350',
-        lineWidth: 2,
-        lineStyle: LightweightCharts.LineStyle.Solid,
-        axisLabelVisible: false,
-        title: '',
-      });
-      linesArray.push(pl15_20Low);
-      activePriceLines.push(low15_20);
-    }
+    filterSessionCandles(dataSource, start15_20, end15_20 - 1, currentInterval).forEach(c => {
+      if (c.high > high15_20) high15_20 = c.high;
+      if (c.low < low15_20) low15_20 = c.low;
+    });
   }
 
-  // Session 0800-2000 (08:00 - 20:00 UTC+8)
+  // 0800-2000
+  let highAsia3 = -Infinity, lowAsia3 = Infinity;
   if (showAsia3) {
     const asia3StartSec = targetDayStartSec + (8 * 3600);
     const asia3EndSec = targetDayStartSec + (20 * 3600);
+    filterSessionCandles(dataSource, asia3StartSec, asia3EndSec - 1, currentInterval).forEach(c => {
+      if (c.high > highAsia3) highAsia3 = c.high;
+      if (c.low < lowAsia3) lowAsia3 = c.low;
+    });
+  }
 
-    const candlesAsia3 = dataSource.filter(item => item.time >= asia3StartSec && item.time < asia3EndSec);
-    if (candlesAsia3.length > 0) {
-      let highAsia3 = -Infinity;
-      let lowAsia3 = Infinity;
+  // 2000-0400
+  let high2000_0400 = -Infinity, low2000_0400 = Infinity;
+  if (showSession2000_0400) {
+    const start2000_0400 = targetDayStartSec - (4 * 3600);
+    const end2000_0400 = targetDayStartSec + (4 * 3600);
+    filterSessionCandles(dataSource, start2000_0400, end2000_0400 - 1, currentInterval).forEach(c => {
+      if (c.high > high2000_0400) high2000_0400 = c.high;
+      if (c.low < low2000_0400) low2000_0400 = c.low;
+    });
+  }
 
-      candlesAsia3.forEach(c => {
-        if (c.high > highAsia3) highAsia3 = c.high;
-        if (c.low < lowAsia3) lowAsia3 = c.low;
+  // ─── Step 2: Overlap dedup ───────────────────────────────────────────────────
+  // Groups that participate in overlap detection (high+low pairs)
+  // Each entry: { id, enabled, high, low }
+  const overlapGroups = [
+    { id: 'toggle-monday',             enabled: showMonday,          high: monHigh,       low: monLow       },
+    { id: 'toggle-pdhlm',              enabled: showPDHLM,           high: prevHigh,      low: prevLow      },
+    { id: 'toggle-asia-8-14',          enabled: showAsia2,           high: highAsia2,     low: lowAsia2     },
+    { id: 'toggle-session-15-20',      enabled: showSession15_20,    high: high15_20,     low: low15_20     },
+    { id: 'toggle-asia-8-20',          enabled: showAsia3,           high: highAsia3,     low: lowAsia3     },
+    { id: 'toggle-session-2000-0400',  enabled: showSession2000_0400,high: high2000_0400, low: low2000_0400 },
+  ].filter(g => g.enabled && g.high !== -Infinity && g.low !== Infinity);
+
+  // Set of IDs to suppress (old groups whose h+l are exactly matched by the new toggle)
+  const suppressed = new Set();
+
+  if (newToggleId) {
+    const newGroup = overlapGroups.find(g => g.id === newToggleId);
+    if (newGroup) {
+      overlapGroups.forEach(g => {
+        if (g.id !== newToggleId && g.high === newGroup.high && g.low === newGroup.low) {
+          suppressed.add(g.id);
+        }
       });
-
-      const plAsia3High = targetSeries.createPriceLine({
-        price: highAsia3,
-        color: '#ef5350',
-        lineWidth: 2,
-        lineStyle: LightweightCharts.LineStyle.Solid,
-        axisLabelVisible: false,
-        title: '',
-      });
-      linesArray.push(plAsia3High);
-      activePriceLines.push(highAsia3);
-
-      const plAsia3Low = targetSeries.createPriceLine({
-        price: lowAsia3,
-        color: '#ef5350',
-        lineWidth: 2,
-        lineStyle: LightweightCharts.LineStyle.Solid,
-        axisLabelVisible: false,
-        title: '',
-      });
-      linesArray.push(plAsia3Low);
-      activePriceLines.push(lowAsia3);
     }
   }
 
-  // Session 2000-0400 (20:00 UTC+8 previous day to 04:00 UTC+8 selected day)
-  if (showSession2000_0400) {
-    const start2000_0400 = targetDayStartSec - (4 * 3600); // 20:00 UTC+8 previous day
-    const end2000_0400 = targetDayStartSec + (4 * 3600);   // 04:00 UTC+8 selected day
+  // Helper to check if a group is suppressed
+  const isActive = (id) => !suppressed.has(id);
 
-    const candles2000_0400 = dataSource.filter(item => item.time >= start2000_0400 && item.time < end2000_0400);
-    if (candles2000_0400.length > 0) {
-      let high2000_0400 = -Infinity;
-      let low2000_0400 = Infinity;
+  // ─── Step 3: Draw ────────────────────────────────────────────────────────────
 
-      candles2000_0400.forEach(c => {
-        if (c.high > high2000_0400) high2000_0400 = c.high;
-        if (c.low < low2000_0400) low2000_0400 = c.low;
-      });
+  // Previous Week (always independent, never suppressed)
+  if (showPW && pwHigh !== -Infinity && pwLow !== Infinity) {
+    addPriceLine(targetSeries, linesArray, pwHigh, '#ab47bc', 2, LightweightCharts.LineStyle.Solid);
+    addPriceLine(targetSeries, linesArray, pwLow,  '#ab47bc', 2, LightweightCharts.LineStyle.Solid);
+  }
 
-      const pl2000_0400High = targetSeries.createPriceLine({
-        price: high2000_0400,
-        color: '#26a69a',
-        lineWidth: 2,
-        lineStyle: LightweightCharts.LineStyle.Solid,
-        axisLabelVisible: false,
-        title: '',
-      });
-      linesArray.push(pl2000_0400High);
-      activePriceLines.push(high2000_0400);
+  // Monday
+  if (showMonday && isActive('toggle-monday') && monHigh !== -Infinity && monLow !== Infinity) {
+    addPriceLine(targetSeries, linesArray, monHigh, '#29b6f6', 2, LightweightCharts.LineStyle.Solid);
+    addPriceLine(targetSeries, linesArray, monLow,  '#29b6f6', 2, LightweightCharts.LineStyle.Solid);
+  }
 
-      const pl2000_0400Low = targetSeries.createPriceLine({
-        price: low2000_0400,
-        color: '#26a69a',
-        lineWidth: 2,
-        lineStyle: LightweightCharts.LineStyle.Solid,
-        axisLabelVisible: false,
-        title: '',
-      });
-      linesArray.push(pl2000_0400Low);
-      activePriceLines.push(low2000_0400);
+  // PDHLM + Fibb + Extend
+  if (prevHigh !== -Infinity && prevLow !== Infinity) {
+    const prevMid = (prevHigh + prevLow) / 2;
+
+    let sumHM = prevHigh + prevMid;
+    if (Number.isInteger(sumHM) && sumHM % 2 !== 0) sumHM += 1;
+    const prev75 = sumHM / 2;
+
+    let sumLM = prevLow + prevMid;
+    if (Number.isInteger(sumLM) && sumLM % 2 !== 0) sumLM -= 1;
+    const prev25 = sumLM / 2;
+
+    if (showPDHLM && isActive('toggle-pdhlm')) {
+      addPriceLine(targetSeries, linesArray, prevHigh, '#ffffff', 2, LightweightCharts.LineStyle.Solid);
+      addPriceLine(targetSeries, linesArray, prevMid,  '#ffffff', 2, LightweightCharts.LineStyle.Dashed);
+      addPriceLine(targetSeries, linesArray, prevLow,  '#ffffff', 2, LightweightCharts.LineStyle.Solid);
     }
+    if (showFibb) {
+      addPriceLine(targetSeries, linesArray, prev75, '#ffeb3b', 2, LightweightCharts.LineStyle.Dotted);
+      addPriceLine(targetSeries, linesArray, prev25, '#ffeb3b', 2, LightweightCharts.LineStyle.Dotted);
+    }
+    if (showExtend) {
+      const midDist = (prevHigh - prevLow) / 2;
+      addPriceLine(targetSeries, linesArray, prevHigh + midDist, '#ffeb3b', 2, LightweightCharts.LineStyle.Solid);
+      addPriceLine(targetSeries, linesArray, prevLow  - midDist, '#ffeb3b', 2, LightweightCharts.LineStyle.Solid);
+    }
+    if (showExtendFibb) {
+      const quarterDist = (prevHigh - prevLow) / 4;
+      addPriceLine(targetSeries, linesArray, prevHigh + quarterDist, '#ffeb3b', 2, LightweightCharts.LineStyle.Dotted);
+      addPriceLine(targetSeries, linesArray, prevLow  - quarterDist, '#ffeb3b', 2, LightweightCharts.LineStyle.Dotted);
+    }
+  }
+
+  // 0800-1400
+  if (showAsia2 && isActive('toggle-asia-8-14') && highAsia2 !== -Infinity && lowAsia2 !== Infinity) {
+    addPriceLine(targetSeries, linesArray, highAsia2, '#ef5350', 2, LightweightCharts.LineStyle.Solid);
+    addPriceLine(targetSeries, linesArray, lowAsia2,  '#ef5350', 2, LightweightCharts.LineStyle.Solid);
+  }
+
+  // 1500-2000
+  if (showSession15_20 && isActive('toggle-session-15-20') && high15_20 !== -Infinity && low15_20 !== Infinity) {
+    addPriceLine(targetSeries, linesArray, high15_20, '#4caf50', 2, LightweightCharts.LineStyle.Solid);
+    addPriceLine(targetSeries, linesArray, low15_20,  '#4caf50', 2, LightweightCharts.LineStyle.Solid);
+  }
+
+  // 0800-2000
+  if (showAsia3 && isActive('toggle-asia-8-20') && highAsia3 !== -Infinity && lowAsia3 !== Infinity) {
+    addPriceLine(targetSeries, linesArray, highAsia3, '#ef5350', 2, LightweightCharts.LineStyle.Solid);
+    addPriceLine(targetSeries, linesArray, lowAsia3,  '#ef5350', 2, LightweightCharts.LineStyle.Solid);
+  }
+
+  // 2000-0400
+  if (showSession2000_0400 && isActive('toggle-session-2000-0400') && high2000_0400 !== -Infinity && low2000_0400 !== Infinity) {
+    addPriceLine(targetSeries, linesArray, high2000_0400, '#26a69a', 2, LightweightCharts.LineStyle.Solid);
+    addPriceLine(targetSeries, linesArray, low2000_0400,  '#26a69a', 2, LightweightCharts.LineStyle.Solid);
   }
 }
 
-async function updateAllPriceLines() {
+async function updateAllPriceLines(newToggleId = null) {
   activePriceLines = [];
-  await drawPriceLinesForSeries(seriesTop, priceLinesTop, rawKlineData);
-  if (isDualLayout) {
-    await drawPriceLinesForSeries(seriesBottom, priceLinesBottom, rawKlineData);
-  }
+  await drawPriceLinesForSeries(seriesTop, priceLinesTop, rawKlineData, newToggleId);
   updateAllSessionCanvases();
 }
-
-

@@ -15,7 +15,7 @@ function handleChartArrowStep(e) {
     e.stopPropagation();
     if (e.type === 'keyup') return;
 
-    const targetChart = chartTop || chartBottom;
+    const targetChart = chartTop;
     if (!targetChart) return;
 
     const currentRange = targetChart.timeScale().getVisibleLogicalRange();
@@ -28,7 +28,6 @@ function handleChartArrowStep(e) {
     };
 
     if (chartTop) chartTop.timeScale().setVisibleLogicalRange(newRange);
-    if (chartBottom && isDualLayout) chartBottom.timeScale().setVisibleLogicalRange(newRange);
   }
 }
 

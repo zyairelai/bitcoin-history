@@ -90,6 +90,19 @@ function initCalendarListeners() {
       currentCalYear = parseInt(parts[0], 10);
       currentCalMonth = parseInt(parts[1], 10) - 1;
       renderCalendar();
+
+      // Position fixed modal directly below the date box
+      const rect = dateBoxWrapper.getBoundingClientRect();
+      const modalW = 250;
+      let posLeft = rect.left + (rect.width / 2) - (modalW / 2);
+      // Clamp so it doesn't overflow the right edge
+      if (posLeft + modalW > window.innerWidth - 8) {
+        posLeft = window.innerWidth - modalW - 8;
+      }
+      if (posLeft < 8) posLeft = 8;
+
+      calendarModal.style.top = `${rect.bottom + 6}px`;
+      calendarModal.style.left = `${posLeft}px`;
     }
   });
 

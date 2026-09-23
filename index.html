@@ -26,16 +26,34 @@
   <div class="app-container">
     <!-- Header Top Bar -->
     <header class="top-bar">
-      <!-- Layout Button (Grid Icon for Single vs Dual Split Chart View) -->
-      <button class="layout-icon-btn" id="layout-toggle" title="Toggle Dual Split Chart Layout">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-        </svg>
-      </button>
+
+      <!-- Stepper Date Controls (< Wed 2026-09-02 >) -->
+      <div class="date-controls">
+        <div class="date-stepper-container">
+          <button class="date-stepper-btn" id="date-prev-day" title="Previous Weekday">&lt;</button>
+
+          <div class="date-box-wrapper" id="date-box-wrapper" title="Click to open calendar">
+            <span class="date-dayname-text" id="date-dayname-text">Wed</span>
+            <span class="date-display-text" id="date-display-text">2026-09-02</span>
+          </div>
+
+          <button class="date-stepper-btn" id="date-next-day" title="Next Weekday">&gt;</button>
+        </div>
+
+      </div>
 
       <div class="header-divider"></div>
+
+      <!-- Session Checkbox (Today) -->
+      <div class="level-toggles-group session-group">
+        <label class="toggle-btn" title="Enable/Disable Today view (05:00 till 20:00 UTC+8)">
+          <input type="checkbox" id="toggle-session" hidden>
+          <span>Today</span>
+        </label>
+      </div>
+
+      <div class="header-divider"></div>
+
 
       <!-- Icon button to toggle Candlestick vs Heikin Ashi -->
       <button class="candle-icon-btn active" id="chart-type-toggle" title="Heikin-Ashi Mode (Click for Candlesticks)">
@@ -64,55 +82,9 @@
 
       <div class="header-divider"></div>
 
-      <!-- Session Checkboxes (Today) -->
-      <div class="level-toggles-group session-group">
 
-        <label class="toggle-btn" title="Enable/Disable Today view (05:00 till 20:00 UTC+8)">
-          <input type="checkbox" id="toggle-session" hidden>
-          <span>Today</span>
-        </label>
-      </div>
 
-      <div class="header-divider"></div>
-
-      <!-- Stepper Date Controls (< Wed 2026-09-02 >) -->
-      <div class="date-controls">
-        <div class="date-stepper-container">
-          <button class="date-stepper-btn" id="date-prev-day" title="Previous Weekday">&lt;</button>
-
-          <div class="date-box-wrapper" id="date-box-wrapper" title="Click to open calendar">
-            <span class="date-dayname-text" id="date-dayname-text">Wed</span>
-            <span class="date-display-text" id="date-display-text">2026-09-02</span>
-          </div>
-
-          <button class="date-stepper-btn" id="date-next-day" title="Next Weekday">&gt;</button>
-        </div>
-
-        <!-- Custom Weekday-Only Calendar Modal -->
-        <div id="calendar-modal" class="calendar-modal hidden">
-          <div class="cal-header">
-            <button id="cal-prev-month" class="cal-nav-btn">&lt;</button>
-            <span id="cal-month-year-title" class="cal-title">September 2026</span>
-            <button id="cal-next-month" class="cal-nav-btn">&gt;</button>
-          </div>
-          <div class="cal-weekdays">
-            <span class="weekend-col">Su</span>
-            <span>Mo</span>
-            <span>Tu</span>
-            <span>We</span>
-            <span>Th</span>
-            <span>Fr</span>
-            <span class="weekend-col">Sa</span>
-          </div>
-          <div class="cal-days-grid" id="cal-days-grid">
-            <!-- Generated dynamically in JS -->
-          </div>
-        </div>
-      </div>
-
-      <div class="header-divider"></div>
-
-      <!-- Level Toggle Buttons (Weekly Monday PDHLM Fibb Extend ExtendFibb 0800-1200 0800-1400) -->
+      <!-- Level Toggle Buttons -->
       <div class="level-toggles-group">
         <label class="toggle-btn active" title="Enable/Disable Previous Week High and Low solid purple lines">
           <input type="checkbox" id="toggle-pw" checked hidden>
@@ -159,20 +131,13 @@
 
     </header>
 
-    <!-- Main Chart Section (Single or Split Dual Chart View) -->
+    <!-- Main Chart Section (Single Chart View) -->
     <main class="chart-section" id="chart-section">
       <!-- Top Chart Panel -->
       <div class="chart-panel" id="panel-top">
         <div id="badge-top" class="chart-badge">BTCUSDT (Binance)</div>
         <div id="chart-container-top" class="chart-container"></div>
         <canvas id="session-canvas-top" class="session-canvas"></canvas>
-      </div>
-
-      <!-- Bottom Chart Panel - Hidden in single layout mode -->
-      <div class="chart-panel hidden" id="panel-bottom">
-        <div id="badge-bottom" class="chart-badge">BTCUSDT (Binance)</div>
-        <div id="chart-container-bottom" class="chart-container"></div>
-        <canvas id="session-canvas-bottom" class="session-canvas"></canvas>
       </div>
 
       <div id="loading-overlay" class="loading-overlay hidden">
@@ -202,6 +167,27 @@
 
       <!-- Success Toast Container for Stacked Notifications -->
       <div id="toast-container" class="toast-container"></div>
+
+      <!-- Custom Weekday-Only Calendar Modal -->
+      <div id="calendar-modal" class="calendar-modal hidden">
+        <div class="cal-header">
+          <button id="cal-prev-month" class="cal-nav-btn">&lt;</button>
+          <span id="cal-month-year-title" class="cal-title">September 2026</span>
+          <button id="cal-next-month" class="cal-nav-btn">&gt;</button>
+        </div>
+        <div class="cal-weekdays">
+          <span class="weekend-col">Su</span>
+          <span>Mo</span>
+          <span>Tu</span>
+          <span>We</span>
+          <span>Th</span>
+          <span>Fr</span>
+          <span class="weekend-col">Sa</span>
+        </div>
+        <div class="cal-days-grid" id="cal-days-grid">
+          <!-- Generated dynamically in JS -->
+        </div>
+      </div>
 
       <script src="js/utils.js"></script>
       <script src="js/state.js"></script>
