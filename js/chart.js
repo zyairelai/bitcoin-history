@@ -298,13 +298,18 @@ function calculateVWAP(candles) {
   let currentDay = null;
   const result = [];
 
+  // Session boundary: 05:00 UTC+8 = 21:00 UTC (previous calendar day)
+  // Shift candle time back by 21h so that floor-dividing by 86400 aligns
+  // the day boundary to 21:00 UTC (= 05:00 UTC+8) instead of 00:00 UTC.
+  const SESSION_OFFSET_SEC = 21 * 3600; // 21 hours
+
   candles.forEach(c => {
-    // 00:00 UTC (08:00 UTC+8) boundary check
-    const candleDay = Math.floor(c.time / 86400);
-    
+    // Compute which "session day" this candle belongs to (resets at 05:00 UTC+8)
+    const candleDay = Math.floor((c.time - SESSION_OFFSET_SEC) / 86400);
+
     if (currentDay !== candleDay) {
-      // Insert a whitespace point 1 second before the new day's first candle
-      // to break the connecting line from the previous day.
+      // Insert a gap point 1 second before the new session's first candle
+      // to break the connecting line from the previous session.
       if (currentDay !== null) {
         result.push({ time: c.time - 1 });
       }
@@ -316,10 +321,10 @@ function calculateVWAP(candles) {
 
     const typicalPrice = (c.high + c.low + c.close) / 3;
     const vol = c.volume || 0;
-    
+
     cumulativeTPV += typicalPrice * vol;
     cumulativeVol += vol;
-    
+
     result.push({
       time: c.time,
       value: cumulativeVol > 0 ? cumulativeTPV / cumulativeVol : typicalPrice,
